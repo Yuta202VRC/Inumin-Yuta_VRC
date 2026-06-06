@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToN Instance & Event Analyzer</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0b0e;
+            --card-bg: #141419;
+            --card-border: #232330;
+            --text-color: #e2e8f0;
+            --text-muted: #7e8c9f;
+            --accent: #ff4757;
+            --success: #2ed573;
+            --info: #00d2d3;
+            --warning: #ffa502;
+            --midnight-red: #ff4d4d;
+            --alt-aqua: #40e0d0;
+            --host-color: #ffc107;
+            --dev-bg: linear-gradient(90deg, #ffd700, #ff8c00);
+            --dev-text: #000000;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            border: 0 solid transparent;
+            min-height: 100vh;
+            box-sizing: border-box;
+            transition: border-width 0.5s ease, border-color 0.5s ease;
+        }
+        
+        .special-border {
+            border-width: 15px !important;
+            animation: border-pulse 3s infinite ease-in-out;
+        }
+        @keyframes border-pulse {
+            0% { border-color: var(--special-color); }
+            50% { border-color: #141419; }
+            100% { border-color: var(--special-color); }
+        }
+
+        .dashboard { max-width: 1400px; margin: 0 auto; }
+        
+        .shop-warning-bar {
+            display: none; background: #4a161d; border: 2px solid var(--accent); color: #ff8787;
+            padding: 14px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.2rem;
+            margin-bottom: 20px; cursor: pointer; box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+            animation: pulse-warn 1.5s infinite alternate;
+        }
+        @keyframes pulse-warn {
+            0% { box-shadow: 0 0 10px rgba(255, 71, 87, 0.3); background: #3a1217; }
+            100% { box-shadow: 0 0 25px rgba(255, 71, 87, 0.6); background: #5a1923; color: #fff; }
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--card-border); padding-bottom: 15px; margin-bottom: 20px; }
+        h1 { margin: 0; font-size: 1.6rem; color: var(--info); letter-spacing: 1px; }
+        .header-controls { display: flex; align-items: center; gap: 12px; }
+        .select-limit { background: #141419; color: var(--text-color); border: 1px solid var(--card-border); padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; outline: none; cursor: pointer; }
+        .select-limit:hover { border-color: #3d3d54; }
+        
+        .btn-action { background: var(--card-border); color: var(--text-color); border: 1px solid #47475a; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: background 0.2s, border-color 0.2s, color 0.2s; }
+        .btn-action:hover { background: #323244; }
+        .btn-primary { background: var(--success); color: #000; border: none; }
+        .btn-primary:hover { background: #26b360; }
+        .btn-edit-mode { border-color: #57606f; color: #a4b0be; }
+        .btn-edit-mode.active { border-color: var(--warning); color: #ffd32a; background: #2c2519; animation: pulse-edit-btn 1.5s infinite alternate; }
+        .btn-manage { border-color: var(--accent); color: #ff8787; }
+        .btn-manage:hover { background: #3d1c22; }
+        .btn-multi { background: #2c2519; color: var(--warning); border-color: var(--warning); }
+        .btn-multi:hover { background: #4a3d24; }
+        
+        .grid-row { display: flex; gap: 20px; margin-bottom: 20px; }
+        .grid-col { display: flex; flex-direction: column; gap: 20px; }
+        .col-left { flex: 4; }
+        .col-right { flex: 5; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); box-sizing: border-box; }
+        .card-header-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .card h2 { margin: 0; font-size: 1rem; color: #fff; border-left: 4px solid var(--info); padding-left: 8px; }
+        .card h2.alt-title { border-left-color: var(--midnight-red); }
+        .card h2.multi-title { border-left-color: var(--warning); }
+
+        .btn-section-reset { background: rgba(255, 71, 87, 0.1); color: var(--accent); border: 1px solid rgba(255, 71, 87, 0.2); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold; transition: background 0.15s, border-color 0.15s; }
+        .btn-section-reset:hover { background: rgba(255, 71, 87, 0.25); border-color: var(--accent); color: #fff; }
+
+        .status-box { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; margin-bottom: 12px; }
+        .status-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+        .status-val { font-size: 1.3rem; font-weight: bold; display: flex; align-items: center; justify-content: space-between; }
+        
+        .intermission { color: var(--success); }
+        .searching { color: var(--warning); }
+        .terror-alt { color: var(--alt-aqua) !important; font-weight: bold; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
+        .terror-midnight { color: var(--midnight-red) !important; font-weight: bold; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
+
+        .active-terror-p { margin: 0 0 10px 0; padding-left: 12px; border-left: 4px solid #3d3d54; line-height: 1.4; font-size: 1.2rem; word-break: break-word; cursor: pointer; }
+        .active-terror-p:last-child { margin-bottom: 0; }
+
+        .counter-grid { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .counter-box { flex: 1; min-width: 80px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--card-border); border-radius: 6px; padding: 8px 4px; text-align: center; }
+        
+        body.edit-mode-enabled .editable-counter { cursor: pointer; transition: color 0.15s; }
+        body.edit-mode-enabled .editable-counter:hover { color: var(--warning) !important; text-decoration: underline; }
+        body.edit-mode-enabled .lamp-container { cursor: pointer; }
+        body.edit-mode-enabled .lamp-container:hover .lamp { transform: scale(1.2); border-color: var(--warning); }
+        body.edit-mode-enabled .editable-result-mark { cursor: pointer; transition: transform 0.1s; }
+        body.edit-mode-enabled .editable-result-mark:hover { transform: scale(1.3); }
+        body.edit-mode-enabled .editable-log-text { cursor: pointer; transition: color 0.1s; }
+        body.edit-mode-enabled .editable-log-text:hover { color: var(--warning); text-decoration: underline dotted; }
+
+        .counter-num { font-size: 1.4rem; font-weight: bold; color: #fff; }
+        .counter-lbl { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+
+        .tracker-grid { display: flex; flex-direction: column; gap: 12px; }
+        .tracker-item { background: rgba(255,255,255,0.02); padding: 12px 16px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); }
+        .tracker-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 10px; color: var(--text-color); }
+        .lamp-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .lamp-container { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; user-select: none; }
+
+        .lamp { width: 12px; height: 12px; border-radius: 50%; background: #2c2c35; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); display: inline-block; transition: transform 0.1s, border-color 0.1s; }
+        .lamp.mystic { --glow: #38bdf8; } .lamp.twilight { --glow: #ffa502; } .lamp.blood { --glow: #ff4757; }
+        .lamp.solstice { --glow: #00d2d3; } .lamp.cold { --glow: #74b9ff; } .lamp.bird { --glow: #ff4757; }
+        .lamp.active { background: var(--glow); box-shadow: 0 0 10px var(--glow), inset 0 1px 2px rgba(255,255,255,0.4); }
+
+        .table-wrapper { max-height: 280px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--card-border); }
+        th { background: var(--card-bg) !important; color: var(--text-muted); position: sticky; top: 0; z-index: 10; box-shadow: inset 0 -1px 0 var(--card-border); }
+        .sortable-th { cursor: pointer; user-select: none; transition: background 0.2s; white-space: nowrap; }
+        .sortable-th:hover { color: #fff; background: #232330 !important; }
+        .sortable-th::after { content: ' ↕'; font-size: 0.7rem; color: var(--text-muted); }
+
+        .result-circle { color: var(--success); font-weight: bold; font-size: 1.1rem; }
+        .result-cross { color: var(--accent); font-weight: bold; font-size: 1.1rem; }
+
+        .map-action-row { display: flex; gap: 10px; margin-top: 8px; }
+        .btn-link { flex: 1; background: #232330; color: #fff; border: 1px solid #3d3d54; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; outline: none; }
+        .btn-link:hover { background: #323244; }
+        .btn-link:disabled { background: #141419; color: #4e5866; border-color: #1c1c24; cursor: not-allowed; }
+
+        .code-text { font-family: monospace; font-size: 0.8rem; word-break: break-all; color: var(--text-muted); }
+        .clickable-terror { color: var(--info); cursor: pointer; text-decoration: none; transition: color 0.1s; }
+        .clickable-terror:hover { color: #4cd137; }
+
+        .terror-badge { font-size: 0.85rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; margin-left: 8px; display: inline-block; vertical-align: middle; line-height: 1; cursor: help; }
+        .badge-stun { background: #1e3d2b; color: var(--success); border: 1px solid rgba(46, 213, 115, 0.4); }
+        .badge-achievement { background: #2d1b3d; color: #d5a6ff; border: 1px solid rgba(155, 89, 182, 0.4); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-window { background: #16161f; border: 1px solid var(--card-border); width: 90%; max-width: 560px; border-radius: 10px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; margin-bottom: 18px; }
+        .modal-title { font-size: 1.1rem; font-weight: bold; color: #fff; }
+        .modal-close-trigger { background: none; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; outline: none; }
+        .modal-close-trigger:hover { color: #fff; }
+        
+        .management-list { display: flex; flex-direction: column; gap: 8px; }
+        .checksheet-item { display: flex; align-items: center; background: rgba(255,255,255,0.01); padding: 11px 14px; border-radius: 6px; border: 1px solid var(--card-border); cursor: pointer; user-select: none; transition: background 0.15s; }
+        .checksheet-item:hover { background: rgba(255,255,255,0.03); border-color: #3d3d54; }
+        .checksheet-checkbox { width: 18px; height: 18px; margin-right: 14px; cursor: pointer; accent-color: var(--accent); }
+        
+        .master-panel { border: 1px solid var(--card-border); background: rgba(0,0,0,0.2); border-radius: 6px; padding: 12px; margin-top: 15px; }
+        .master-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .input-text-dark { flex: 1; background: #0b0b0e; color: #fff; border: 1px solid var(--card-border); padding: 8px; border-radius: 4px; font-size: 0.85rem; outline: none; }
+        .input-text-dark:focus { border-color: var(--info); }
+        .btn-add-master { background: var(--info); color: #fff; border: none; padding: 0 14px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; cursor: pointer; }
+        .btn-add-master:hover { background: #00b6b7; }
+        .master-tags-wrapper { max-height: 120px; overflow-y: auto; background: #0b0b0e; padding: 8px; border-radius: 4px; display: flex; flex-wrap: wrap; gap: 6px; border: 1px solid var(--card-border); }
+        .master-tag { display: inline-flex; align-items: center; background: #232330; color: #cda2ff; border: 1px solid #3d3d54; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .master-tag-del { color: var(--accent); margin-left: 6px; cursor: pointer; font-size: 0.85rem; }
+        .master-tag-del:hover { color: #ff2e44; }
+
+        .memo-input-area { width: 100%; background: #0b0b0e; color: #fff; border: 1px solid var(--card-border); border-radius: 6px; padding: 10px; box-sizing: border-box; font-size: 0.85rem; resize: vertical; min-height: 80px; outline: none; font-family: inherit; }
+        .select-rating { background: #0b0b0e; color: var(--warning); border: 1px solid var(--card-border); padding: 6px; border-radius: 6px; font-weight: bold; outline: none; }
+        .btn-wiki-search { background: #233544; color: #74b9ff; border: 1px solid #34495e; padding: 3px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; margin-left: 10px; text-decoration: none; display: inline-block; transition: background 0.15s, color 0.15s; }
+        .btn-execute-delete { width: 100%; background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 15px; }
+        .btn-save-memo { width: 100%; background: var(--info); color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 15px; }
+        
+        .effect-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--card-border); margin-bottom: 6px; }
+        .effect-info { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+        .effect-color-preview { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.2); display: inline-block; }
+
+        /* Multiplayer specific */
+        .player-list { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; }
+        .player-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; background: rgba(255,255,255,0.01); }
+        .player-item.dead { opacity: 0.6; }
+        .player-item.dead .player-name { color: var(--accent) !important; text-decoration: line-through; }
+        .player-info { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+        .dev-badge { background: var(--dev-bg); color: var(--dev-text); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
+        .host-mark { color: var(--host-color); font-size: 1rem; }
+        .tag-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; }
+        .tag-badge { background: #333; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; border: 1px solid #444; }
+        .tag-select-row { display: flex; gap: 10px; margin-top: 15px; align-items: center; }
+        
+        .multi-tabs { display: flex; border-bottom: 1px solid var(--card-border); margin-bottom: 15px; }
+        .multi-tab { flex: 1; background: transparent; color: var(--text-muted); border: none; padding: 10px; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; transition: color 0.2s, border-bottom-color 0.2s; outline: none; }
+        .multi-tab.active { color: var(--warning); border-bottom-color: var(--warning); }
+        .multi-tab:hover:not(.active) { color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard" id="dashboardMain">
+    <div id="shopWarningBar" class="shop-warning-bar" onclick="clearShopWarning()">
+        ⚠️ 前の特殊ラウンドはアイテム持ち込み不可でした！ショップでの買い忘れ・補充に注意してください！ (クリックで閉じる)
+    </div>
+
+    <div class="header">
+        <h1>ToN インスタンス ＆ イベントアナライザー</h1>
+        <div class="header-controls">
+            <select id="selectLimit" class="select-limit" onchange="changeDisplayLimit()">
+                <option value="50">表示制限: 50件</option>
+                <option value="100" selected>表示制限: 100件</option>
+                <option value="150">表示制限: 150件</option>
+                <option value="200">表示制限: 200件</option>
+            </select>
+            <button id="btnEditMode" class="btn-action btn-edit-mode" onclick="toggleEditMode()">編集モード: OFF</button>
+            <button class="btn-action btn-multi" onclick="toggleModal('multiplayerModal', true)">🌐 マルチプレイ連携</button>
+            <button class="btn-action btn-manage" onclick="toggleModal('managementModal', true)">データ管理</button>
+        </div>
+    </div>
+
+    <div class="grid-row">
+        <div class="grid-col col-left">
+            <div class="card">
+                <div class="card-header-wrapper">
+                    <h2>現在のラウンド情報</h2>
+                    <button class="btn-section-reset" onclick="resetSection('counters')">🔁 リセット</button>
+                </div>
+                
+                <div class="counter-grid">
+                    <div class="counter-box">
+                        <div id="cntTotal" class="counter-num editable-counter" onclick="editCounterValue('total')">0</div>
+                        <div class="counter-lbl">試合回数</div>
+                    </div>
+                    <div class="counter-box">
+                        <div id="cntSurvival" class="counter-num editable-counter" onclick="editCounterValue('survival')">0</div>
+                        <div class="counter-lbl">生存回数</div>
+                    </div>
+                    <div class="counter-box">
+                        <div id="cntRate" class="counter-num">0%</div>
+                        <div class="counter-lbl">現在勝率</div>
+                    </div>
+                    <div class="counter-box" style="border-color: #2ed57333;">
+                        <div id="cntCStreak" class="counter-num editable-counter" style="color: var(--success);" onclick="editCounterValue('currentStreak')">0</div>
+                        <div class="counter-lbl">現在連勝</div>
+                    </div>
+                    <div class="counter-box" style="border-color: #ffa50233; flex: 1.8; display: flex; flex-direction: column; justify-content: center;">
+                        <div class="editable-counter" onclick="editCounterValue('bestStreaks')" style="display: flex; justify-content: space-around; color: var(--warning); font-weight: bold; font-size: 1rem;">
+                            <div id="cntBStreak1">1st: 0</div>
+                            <div id="cntBStreak2">2nd: 0</div>
+                            <div id="cntBStreak3">3rd: 0</div>
+                        </div>
+                        <div class="counter-lbl">最高連勝</div>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-bottom:12px;">
+                    <div class="status-box" style="flex:1; margin-bottom:0;">
+                        <div class="status-label">ラウンドタイプ</div>
+                        <div id="curRoundType" class="status-val intermission">休憩時間</div>
+                    </div>
+                    <div class="status-box" style="flex:1; margin-bottom:0;">
+                        <div class="status-label">接続状態</div>
+                        <div id="curState" class="status-val" style="color: var(--accent);">---</div>
+                    </div>
+                </div>
+                
+                <div class="status-box">
+                    <div class="status-label">出現中のテラー (クリックで個人メモ表示)</div>
+                    <div id="curTerror" class="status-val" style="color: #fff; padding: 4px 0; display: block;">---</div>
+                </div>
+
+                <div class="status-box" style="margin-bottom: 0;">
+                    <div class="status-label">現在のインスタンス</div>
+                    <div id="curInstance" class="code-text">未接続</div>
+                    <div class="map-action-row">
+                        <button id="btnCopyUrl" class="btn-link" onclick="copyInstanceUrl()" disabled>URLをコピー</button>
+                        <a id="btnOpenUrl" class="btn-link" href="#" target="_blank" style="display: none;">ブラウザで開く</a>
+                        <button id="btnOpenUrlDummy" class="btn-link" disabled>ブラウザで開く</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="multiplayerPanel" style="display: none; border-color: var(--warning);">
+                <div class="card-header-wrapper">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h2 class="multi-title" id="displayRoomName">ルーム名</h2>
+                        <button id="btnCopyInvite" class="btn-action" style="background:#2c2519; color:var(--info); border-color:var(--info); padding: 4px 10px; font-size: 0.75rem;" onclick="copyInviteInfo()">📋 招待テキストをコピー</button>
+                    </div>
+                    <button class="btn-action" style="background:#2c2519;" onclick="leaveRoom()">退出 / 切断</button>
+                </div>
+                
+                <div id="multiPrivateContent">
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <div style="flex:1; background:rgba(0,0,0,0.2); padding:10px; border-radius:6px; text-align:center;">
+                            <div style="font-size:0.75rem; color:var(--text-muted);">総合チーム生存率</div>
+                            <div id="teamSurvivalRate" style="font-size:1.3rem; font-weight:bold; color:var(--success);">--%</div>
+                        </div>
+                    </div>
+
+                    <div class="tag-summary" id="tagSummaryContainer"></div>
+
+                    <ul class="player-list" id="playerListContainer"></ul>
+
+                    <div class="tag-select-row">
+                        <select id="myTagSelect" class="select-limit" style="flex:1;" autocomplete="off">
+                            <option value="none" selected>タグなし</option>
+                            <option value="survive">生存希望</option>
+                            <option value="evo_alt">オルタ進化</option>
+                            <option value="evo_blood">ブラバ進化</option>
+                            <option value="evo_mid">ミッド進化</option>
+                            <option value="emeco">エメコ</option>
+                            <option value="pot">壺</option>
+                            <option value="item_brick">レンガ</option>
+                            <option value="item_rock">岩石</option>
+                            <option value="item_nut">ナッツ</option>
+                            <option value="item_cat">猫</option>
+                            <option value="item_charm">チャーム</option>
+                            <option value="item_gf">ガルフレ</option>
+                            <option value="stun">スタンします</option>
+                            <option value="chase">チェイスします</option>
+                            <option value="afk">離席中</option>
+                        </select>
+                        <button class="btn-action btn-primary" onclick="updateMyTag()">タグ更新</button>
+                        <button class="btn-action" style="background:var(--accent); color:#fff; border:none; padding:4px 8px; font-size:0.7rem; white-space:nowrap;" onclick="forceRespawn()">任意リスポーン(死亡)</button>
+                    </div>
+                </div>
+                <div id="multiPublicContent" style="display:none; text-align:center; padding:20px; color:var(--text-muted);">
+                    <div style="font-size:1.5rem; margin-bottom:10px;">👻</div>
+                    オープン部屋に匿名（ゴースト）参加中です。<br>
+                    プレイヤー情報や戦績は共有されず、<br>インスタンスの環境データ（テラー履歴・特殊Moon等）のみ送受信しています。
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-col col-right">
+            <div class="card">
+                <div class="card-header-wrapper">
+                    <h2>特殊解放 ＆ 特定テラー検知</h2>
+                    <button class="btn-section-reset" onclick="resetSection('lamps')">🔁 リセット</button>
+                </div>
+                <div class="tracker-grid">
+                    <div class="tracker-item">
+                        <div class="tracker-title">特殊Moon 解放状態</div>
+                        <div class="lamp-row">
+                            <div class="lamp-container" onclick="toggleTrackerLamp('mystic')"><span id="lampMystic" class="lamp mystic"></span><span>ミスティック</span></div>
+                            <div class="lamp-container" onclick="toggleTrackerLamp('twilight')"><span id="lampTwilight" class="lamp twilight"></span><span>トワイライト</span></div>
+                            <div class="lamp-container" onclick="toggleTrackerLamp('blood')"><span id="lampBlood" class="lamp blood"></span><span>ブラッド</span></div>
+                            <div class="lamp-container" onclick="toggleTrackerLamp('solstice')"><span id="lampSolstice" class="lamp solstice"></span><span>ソルスティス</span></div>
+                            <div class="lamp-container" onclick="toggleTrackerLamp('coldNight')"><span id="lampColdNight" class="lamp cold"></span><span>コールドナイト</span></div>
+                        </div>
+                    </div>
+                    <div class="tracker-item">
+                        <div class="tracker-title">鳥3種 出現状況</div>
+                        <div class="lamp-row">
+                            <div class="lamp-container" onclick="toggleTrackerLamp('bigBird')"><span id="lampBigBird" class="lamp bird"></span><span>大鳥</span></div>
+                            <div class="lamp-container" onclick="toggleTrackerLamp('punishingBird')"><span id="lampPunishingBird" class="lamp bird"></span><span>罰鳥</span></div>
+                            <div class="lamp-container" onclick="toggleTrackerLamp('judgementBird')"><span id="lampJudgementBird" class="lamp bird"></span><span>審判鳥</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <div class="card-header-wrapper" style="margin-bottom: 8px;">
+                        <h2 style="border-left-color: var(--warning);">テラー別 遭遇・戦績データ</h2>
+                        <input type="text" id="terrorSearchInput" placeholder="検索..." oninput="renderTerrorDatabase()" style="background:#0b0b0e; border:1px solid #3d3d54; color:#fff; padding:4px 8px; border-radius:4px; font-size:0.8rem; width:100px; outline:none;">
+                    </div>
+                    <div class="table-wrapper" style="max-height: 180px;">
+                        <table id="terrorStatsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50%;">テラー名</th>
+                                    <th style="width: 25%; text-align: center;" class="sortable-th" onclick="sortStats('met')">遭遇回数</th>
+                                    <th style="width: 25%; text-align: center;" class="sortable-th" onclick="sortStats('survivability')">生存率</th>
+                                </tr>
+                            </thead>
+                            <tbody id="terrorStatsBody">
+                                <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">データなし</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="border-color: #3b2d54;">
+                <div class="card-header-wrapper">
+                    <h2 class="alt-title">オルタ・特殊ラウンド限定記録</h2>
+                    <button class="btn-section-reset" onclick="resetSection('alt')">🔁 リセット</button>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">時間</th>
+                                <th style="width: 25%;">特殊枠タイプ</th>
+                                <th style="width: 45%;">出現したテラー</th>
+                                <th style="width: 15%; text-align: center;">勝敗</th>
+                            </tr>
+                        </thead>
+                        <tbody id="altHistoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header-wrapper">
+            <h2>全ラウンド履歴</h2>
+            <button class="btn-section-reset" onclick="resetSection('global')">🔁 リセット</button>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">時間</th>
+                        <th style="width: 25%;">ラウンド</th>
+                        <th style="width: 60%;">出現テラー</th>
+                    </tr>
+                </thead>
+                <tbody id="globalHistoryBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="multiplayerModal" class="modal-overlay" onclick="toggleModal('multiplayerModal', false)">
+    <div class="modal-window" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-title" style="color: var(--warning);">🌐 マルチプレイ連携（P2P同期）</div>
+            <button class="modal-close-trigger" onclick="toggleModal('multiplayerModal', false)">×</button>
+        </div>
+        
+        <div class="master-panel" style="border-color: var(--warning); background: rgba(255, 165, 2, 0.05); margin-top:0;">
+            <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--warning);">
+                <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:6px; color:var(--text-color);">
+                    あなたの表示名（ユーザー名） <span style="color:var(--accent); font-size:0.75rem;">*必須</span>
+                </label>
+                <input type="text" id="myPlayerNameInput" class="input-text-dark" placeholder="VRChatでの名前などを入力 (例: Player)" style="border-color:var(--warning);">
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">※開発者認証は「名前#パスワード」形式で入力してください。</div>
+            </div>
+
+            <div class="multi-tabs">
+                <button id="tabCreate" class="multi-tab active" onclick="switchMultiTab('create')">部屋を作成</button>
+                <button id="tabJoin" class="multi-tab" onclick="switchMultiTab('join')">部屋に参加</button>
+            </div>
+
+            <div id="multiCreateSection">
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">
+                    ※競合を防ぐため、部屋IDは自動的に生成されます。作成後に表示される「招待テキスト」をフレンドにお渡しください。
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">公開設定</label>
+                    <select id="createRoomType" class="select-limit" style="width: 100%;" onchange="toggleCreatePassword()">
+                        <option value="private">🔒 鍵部屋（プライベート：ステータスや戦績を完全共有）</option>
+                        <option value="public">🌍 オープン部屋（パブリック：環境データのみを同期）</option>
+                    </select>
+                </div>
+                <div id="createPasswordGroup" style="margin-bottom: 15px;">
+                    <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">パスワード（合言葉）</label>
+                    <input type="text" id="createPassword" class="input-text-dark" placeholder="フレンドに共有するパスワード">
+                </div>
+                <button class="btn-action" style="width:100%; background:#2c2519; color:var(--warning); border-color:var(--warning); padding:10px;" onclick="createRoom()">ホストとして部屋を作成</button>
+            </div>
+
+            <div id="multiJoinSection" style="display:none;">
+                <div style="margin-bottom: 10px;">
+                    <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">参加する部屋ID</label>
+                    <input type="text" id="joinRoomName" class="input-text-dark" placeholder="ホストから共有された部屋IDを入力">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">パスワード（鍵部屋の場合のみ）</label>
+                    <input type="text" id="joinPassword" class="input-text-dark" placeholder="パスワードを入力">
+                </div>
+                
+                <label class="checksheet-item" style="margin-bottom: 15px;">
+                    <input type="checkbox" id="anonymousJoinCheck" class="checksheet-checkbox">
+                    <span class="management-label" style="font-size:0.8rem;">オープン部屋に匿名参加する（リストに名前を出さず環境共有のみ）</span>
+                </label>
+                
+                <button class="btn-action" style="width:100%; background:#2c2519; color:var(--info); border-color:var(--info); padding:10px;" onclick="joinRoom()">部屋に参加する</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="managementModal" class="modal-overlay" onclick="toggleModal('managementModal', false)">
+    <div class="modal-window" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-title">データ管理 ＆ 設定</div>
+            <button class="modal-close-trigger" onclick="toggleModal('managementModal', false)">×</button>
+        </div>
+        
+        <div class="management-list">
+            <label class="checksheet-item"><input type="checkbox" id="chkStreak" class="checksheet-checkbox"><span class="management-label"><strong>最高連勝記録 (★保護対象)</strong></span></label>
+            <label class="checksheet-item"><input type="checkbox" id="chkDb" class="checksheet-checkbox"><span class="management-label"><strong>テラー別 遭遇・戦績データ (★保護対象)</strong></span></label>
+            <button class="btn-execute-delete" style="margin-top:5px; margin-bottom:5px;" onclick="executeSelectedDeletions()">選択した項目を削除</button>
+        </div>
+        
+        <div class="master-panel">
+            <span style="font-size: 0.85rem; font-weight: bold; color: var(--success); display: block; margin-bottom: 6px;">💾 バックアップ ＆ データクリーンアップ</span>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button class="btn-action" style="flex: 1;" onclick="exportData()">データをエクスポート</button>
+                <button class="btn-action" style="flex: 1;" onclick="document.getElementById('importFile').click()">データをインポート</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; border: 1px solid var(--card-border);">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">履歴データの保存上限数:</span>
+                <input type="number" id="numMaxHistory" class="input-text-dark" style="width: 80px; padding: 4px;" value="50" min="50">
+                <button class="btn-action" style="padding: 4px 10px;" onclick="saveMaxHistory()">適用</button>
+            </div>
+        </div>
+
+        <div class="master-panel">
+            <span style="font-size: 0.85rem; font-weight: bold; color: var(--info); display: block; margin-bottom: 6px;">✨ カスタム特殊演出の管理</span>
+            <div class="master-input-row" style="align-items: center; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; border: 1px solid var(--card-border);">
+                <select id="selEffectRound" class="select-limit" style="width: 120px; padding: 6px;">
+                    <option value="Alternate">オルタネイト</option>
+                    <option value="Midnight">ミッドナイト</option>
+                    <option value="Fog">霧</option>
+                    <option value="Ghost">ゴースト</option>
+                    <option value="Unbound" selected>アンバウンド</option>
+                </select>
+                <input type="text" id="txtEffectTerror" class="input-text-dark" placeholder="テラー名" style="flex: 1;">
+                
+                <div style="display: flex; align-items: center; gap: 4px; background: #0b0b0e; border: 1px solid var(--card-border); border-radius: 4px; padding: 2px 6px;">
+                    <input type="color" id="colEffectColor" value="#ff4757" style="width: 24px; height: 24px; padding: 0; border: none; background: none; cursor: pointer;">
+                    <input type="text" id="txtEffectColorHex" value="#ff4757" style="width: 60px; background: transparent; border: none; color: #fff; font-size: 0.85rem; outline: none; text-align: center;" maxlength="7">
+                </div>
+                <button class="btn-add-master" onclick="addCustomEffect()">登録</button>
+            </div>
+            <div id="customEffectsContainer" style="display: flex; flex-direction: column; max-height: 140px; overflow-y: auto; padding-right: 4px;"></div>
+        </div>
+
+        <div class="master-panel">
+            <span style="font-size: 0.85rem; font-weight: bold; color: var(--midnight-red); display: block; margin-bottom: 6px;">⚙️ オルタ・ミッドナイト枠対象テラーの管理</span>
+            <div class="master-input-row">
+                <input type="text" id="txtNewAltTerror" class="input-text-dark" placeholder="例: NewAlternateTerror">
+                <button class="btn-add-master" onclick="addAltTerrorMaster()">追加</button>
+            </div>
+            <div id="masterTagsContainer" class="master-tags-wrapper"></div>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px; text-align: center; color: var(--text-muted); font-size: 0.8rem;">
+            <div style="margin-bottom: 5px;">© 2026 Inume Yuta. All rights reserved.</div>
+            <div style="font-weight: bold; margin-bottom: 5px;">犬峰ゆた</div>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <a href="https://x.com/Yuta_REC" target="_blank" style="color: var(--info); text-decoration: none;">X (Twitter)</a>
+                <a href="https://yutavrc.booth.pm/" target="_blank" style="color: var(--info); text-decoration: none;">BOOTH</a>
+            </div>
+            <div style="margin-top: 8px; font-size: 0.75rem; color: var(--accent);">転用・無断転載禁止</div>
+        </div>
+    </div>
+</div>
+
+<div id="terrorMemoModal" class="modal-overlay" onclick="toggleModal('terrorMemoModal', false)">
+    <div class="modal-window" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center;">
+                <div class="modal-title" id="memoModalTitle">テラー攻略個人メモ</div>
+                <a id="btnWikiSearch" class="btn-wiki-search" href="#" target="_blank">Wiki検索</a>
+            </div>
+            <button class="modal-close-trigger" onclick="toggleModal('terrorMemoModal', false)">×</button>
+        </div>
+        <div class="management-list">
+            <label class="checksheet-item"><input type="checkbox" id="memoStun" class="checksheet-checkbox"><span class="management-label"><strong>スタン可能</strong></span></label>
+            <label class="checksheet-item"><input type="checkbox" id="memoGaze" class="checksheet-checkbox"><span class="management-label"><strong>実績持ち</strong></span></label>
+            <label class="checksheet-item"><input type="checkbox" id="memoInstant" class="checksheet-checkbox"><span class="management-label" style="color: var(--accent);"><strong>即死攻撃あり</strong></span></label>
+            
+            <div style="margin-top: 8px;">
+                <span style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 4px;">要注意・危険度度合い：</span>
+                <select id="memoRating" class="select-rating">
+                    <option value="★">★☆☆☆☆</option>
+                    <option value="★★">★★☆☆☆</option>
+                    <option value="★★★" selected>★★★☆☆</option>
+                    <option value="★★★★">★★★★☆</option>
+                    <option value="★★★★★">★★★★★</option>
+                </select>
+            </div>
+            <div style="margin-top: 10px;">
+                <span style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 4px;">自由攻略・対策用個人メモ書き:</span>
+                <textarea id="memoText" class="memo-input-area" placeholder="安置の場所、足音の特徴など..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-save-memo" onclick="saveTerrorMemo()">変更内容を保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 正式な製作者のVRC ID
+    const AUTHOR_ID = "usr_e375a7dc-fa7a-4dc1-b4e4-671f50368d83";
+    const wsUrl = "ws://localhost:11398/";
+    let socket;
+    
+    // UI Settings & Logs
+    let displayMaxLimit = 100;
+    let maxHistorySave = 50; 
+    let globalHistory = [];
+    let altHistory = [];
+    let gameCounters = { total: 0, survival: 0, currentStreak: 0, bestStreaks: [0,0,0] };
+    let terrorDatabase = {}; 
+    let terrorMemos = {}; 
+
+    // Multiplayer States
+    let peer = null;
+    let isHost = false;
+    let hostConnection = null;
+    let connections = []; 
+
+    // 初期化時は必ず空（ゲスト扱い）にする
+    let localVrcId = ""; 
+    let localPlayerName = "Player";
+    let isInRoom = false;
+    let currentRoomName = ""; 
+    let currentRoomType = "private";
+    let currentRoomPassword = "";
+    
+    let multiSessionSurvival = 0;
+    let multiSessionStreak = 0;
+
+    let localPlayerInfo = { vrcId: "", name: "Player", tag: "none", isAlive: true, survivalCount: 0, sessionStreak: 0, isHost: false, isAnonymous: false };
+    let roomPlayers = []; 
+
+    const DEFAULT_ALT_TERRORS = [
+        "Alternate", "Blue Haket", "Eyes", "Inverted Roblander", "Kimera", "Monarch", "Nameless",
+        "Rabid Snarbolax", "Rewrite", "Ruinborn Afton", "Scrapyard Machine", "Search and Destroy",
+        "Slendy", "The Batter", "Feddys", "TBH SPY", "Tragedy", "Chomper", "Paradise Bird",
+        "The Restless", "Lord's Signal", "Joy", "MR MEGA", "Eggman's Announcement", "The Knight Of Toren",
+        "Decayed Sponge", "Parhelion", ",D@;Q7Y", "Army In Black", "Lone Agent", "Bliss", "Glaggle Gang",
+        "WHITEFACE", "sm64.z64", "The Red Mist", "Sanic", "S.T.G.M", "Convict Squad", "Fusion Pilot",
+        "Azrael", "LISA", "Smile Walker", "Angry Munci", "Ambush", "Roblander", "Walpurgisnacht",
+        "Sakuya The Ripper", "Sakuya the Ripper", "Teuthida", "Judas", "Try Not To Touch Me", "The Observation", "Atrached",
+        "TBH SANS", "Epic Bonnie", "Hungry Home Invader", "Wild Yet Bloodthirsty Creature",
+        "Pizza Mascots", "Red Mist Apparition", "Shadow Freddy", "The Navigator",
+        ".;.[;.;[..;[';'/.[]'];']/'=.];';[;-=].-=/;-=;][;-=/;'./=-;.", "Shadow Evil Purple Foxy"
+    ];
+
+    const BLOCK_LIST = ["parhelion's victims", "tbh", "withered bonnie"];
+    const EXCLUSION_MAP = { "Faker": ["Sonic", "Sanic"], "Shadow Evil Purple Foxy": ["Sanic"] };
+    const ROUND_NAME_MAP = { "Alternate": "オルタネイト", "Midnight": "ミッドナイト", "Unbound": "アンバウンド", "Fog": "霧", "Ghost": "ゴースト" };
+
+    const tagNamesMap = { 
+        'emeco': 'エメコ', 'pot': '壺', 'stun': 'スタンします', 'chase': 'チェイスします', 
+        'survive': '生存希望', 'evo_alt': 'オルタ進化', 'evo_blood': 'ブラバ進化', 'evo_mid': 'ミッド進化',
+        'item_brick': 'レンガ', 'item_rock': '岩石', 'item_nut': 'ナッツ', 'item_cat': '猫',
+        'item_charm': 'チャーム', 'item_gf': 'ガルフレ', 'afk': '離席中'
+    };
+
+    let customAltTerrors = [];
+    let customEffects = [
+        { roundType: "Unbound", terror: "END OF THE WORLD", color: "#ffd32a" },
+        { roundType: "Midnight", terror: "Kimera", color: "#954C93" },
+        { roundType: "Unbound", terror: "Angels", color: "#800020" }
+    ];
+
+    let activeTerrorSet = new Set();
+    let currentRoundData = { type: "Classic", active: false, isDead: false };
+    let currentInstanceRawString = ""; 
+    let currentSelectedMemoTerror = ""; 
+    let currentSort = { key: 'met', order: 'desc' }; 
+    
+    let trackerState = {
+        mystic: false, twilight: false, blood: false, solstice: false, coldNight: false,
+        bigBird: false, punishingBird: false, judgementBird: false
+    };
+    
+    let isEditModeEnabled = false;
+    let isTestingEffect = false;
+    let testEffectTimeout;
+
+    const elements = {
+        curRoundType: document.getElementById('curRoundType'),
+        curState: document.getElementById('curState'),
+        curTerror: document.getElementById('curTerror'),
+        curInstance: document.getElementById('curInstance'),
+        globalHistoryBody: document.getElementById('globalHistoryBody'),
+        altHistoryBody: document.getElementById('altHistoryBody'),
+        cntTotal: document.getElementById('cntTotal'),
+        cntSurvival: document.getElementById('cntSurvival'),
+        cntRate: document.getElementById('cntRate'),
+        cntCStreak: document.getElementById('cntCStreak'),
+        cntBStreak1: document.getElementById('cntBStreak1'),
+        cntBStreak2: document.getElementById('cntBStreak2'),
+        cntBStreak3: document.getElementById('cntBStreak3'),
+        terrorStatsBody: document.getElementById('terrorStatsBody'),
+        lampMystic: document.getElementById('lampMystic'),
+        lampTwilight: document.getElementById('lampTwilight'),
+        lampBlood: document.getElementById('lampBlood'),
+        lampSolstice: document.getElementById('lampSolstice'),
+        lampColdNight: document.getElementById('lampColdNight'),
+        lampBigBird: document.getElementById('lampBigBird'),
+        lampPunishingBird: document.getElementById('lampPunishingBird'),
+        lampJudgementBird: document.getElementById('lampJudgementBird'),
+        btnCopyUrl: document.getElementById('btnCopyUrl'),
+        btnOpenUrl: document.getElementById('btnOpenUrl'),
+        btnOpenUrlDummy: document.getElementById('btnOpenUrlDummy'),
+        selectLimit: document.getElementById('selectLimit'),
+        shopWarningBar: document.getElementById('shopWarningBar'),
+        btnWikiSearch: document.getElementById('btnWikiSearch'),
+        btnEditMode: document.getElementById('btnEditMode'),
+        masterTagsContainer: document.getElementById('masterTagsContainer'),
+        txtNewAltTerror: document.getElementById('txtNewAltTerror'),
+        memoModalTitle: document.getElementById('memoModalTitle'), 
+        memoStun: document.getElementById('memoStun'),
+        memoGaze: document.getElementById('memoGaze'), 
+        memoInstant: document.getElementById('memoInstant'),
+        memoRating: document.getElementById('memoRating'),
+        memoText: document.getElementById('memoText'),
+        chkStreak: document.getElementById('chkStreak'),
+        chkDb: document.getElementById('chkDb'),
+        terrorSearchInput: document.getElementById('terrorSearchInput'),
+        selEffectRound: document.getElementById('selEffectRound'),
+        txtEffectTerror: document.getElementById('txtEffectTerror'),
+        colEffectColor: document.getElementById('colEffectColor'),
+        txtEffectColorHex: document.getElementById('txtEffectColorHex'),
+        customEffectsContainer: document.getElementById('customEffectsContainer'),
+        numMaxHistory: document.getElementById('numMaxHistory'),
+        
+        myPlayerNameInput: document.getElementById('myPlayerNameInput'),
+        myTagSelect: document.getElementById('myTagSelect'),
+        multiplayerPanel: document.getElementById('multiplayerPanel'),
+        displayRoomName: document.getElementById('displayRoomName'),
+        multiPrivateContent: document.getElementById('multiPrivateContent'),
+        multiPublicContent: document.getElementById('multiPublicContent'),
+        playerListContainer: document.getElementById('playerListContainer'),
+        tagSummaryContainer: document.getElementById('tagSummaryContainer'),
+        teamSurvivalRate: document.getElementById('teamSurvivalRate'),
+        btnCopyInvite: document.getElementById('btnCopyInvite'),
+        
+        tabCreate: document.getElementById('tabCreate'),
+        tabJoin: document.getElementById('tabJoin'),
+        multiCreateSection: document.getElementById('multiCreateSection'),
+        multiJoinSection: document.getElementById('multiJoinSection'),
+        createRoomName: document.getElementById('createRoomName'),
+        createRoomType: document.getElementById('createRoomType'),
+        createPassword: document.getElementById('createPassword'),
+        createPasswordGroup: document.getElementById('createPasswordGroup'),
+        joinRoomName: document.getElementById('joinRoomName'),
+        joinPassword: document.getElementById('joinPassword'),
+        anonymousJoinCheck: document.getElementById('anonymousJoinCheck')
+    };
+
+    elements.colEffectColor.addEventListener('input', function() { elements.txtEffectColorHex.value = this.value; });
+    elements.txtEffectColorHex.addEventListener('input', function() { if (/^#[0-9A-Fa-f]{6}$/i.test(this.value)) { elements.colEffectColor.value = this.value; }});
+
+    function loadLogs() {
+        const gLog = localStorage.getItem('ton_v4_global'); const aLog = localStorage.getItem('ton_v4_alt');
+        const cLog = localStorage.getItem('ton_v4_counters'); const tLog = localStorage.getItem('ton_v4_tracker_state');
+        const dLog = localStorage.getItem('ton_v4_terror_db'); const sLimit = localStorage.getItem('ton_v4_display_limit');
+        const mLog = localStorage.getItem('ton_v5_terror_memos'); const mAlt = localStorage.getItem('ton_v6_custom_alt_master'); 
+        const eLog = localStorage.getItem('ton_v7_custom_effects'); const maxH = localStorage.getItem('ton_v8_max_history');
+        const savedPlayerName = localStorage.getItem('ton_multi_player_name');
+
+        if (gLog) { try { globalHistory = JSON.parse(gLog); } catch(e){} }
+        if (aLog) { try { altHistory = JSON.parse(aLog); } catch(e){} }
+        if (cLog) { try { gameCounters = { ...gameCounters, ...JSON.parse(cLog) }; if (!gameCounters.bestStreaks) gameCounters.bestStreaks = [0, 0, 0]; } catch(e){} }
+        if (tLog) { try { trackerState = { ...trackerState, ...JSON.parse(tLog) }; } catch(e){} } 
+        if (dLog) { try { terrorDatabase = JSON.parse(dLog); } catch(e){} }
+        if (mLog) { try { terrorMemos = JSON.parse(mLog); } catch(e){} }
+        if (mAlt) { try { customAltTerrors = JSON.parse(mAlt); } catch(e){} }
+        if (eLog) { try { customEffects = JSON.parse(eLog); } catch(e){} }
+        if (sLimit) { displayMaxLimit = parseInt(sLimit, 10) || 100; elements.selectLimit.value = displayMaxLimit; }
+        if (!gameCounters.hasOwnProperty('currentStreak')) { gameCounters.currentStreak = 0; }
+        if (maxH) { maxHistorySave = parseInt(maxH, 10) || 50; }
+        if (savedPlayerName) { elements.myPlayerNameInput.value = savedPlayerName; }
+        
+        elements.numMaxHistory.value = maxHistorySave;
+        renderMasterTags(); renderCustomEffects();
+    }
+
+    function saveLogs() {
+        localStorage.setItem('ton_v4_global', JSON.stringify(globalHistory)); localStorage.setItem('ton_v4_alt', JSON.stringify(altHistory));
+        localStorage.setItem('ton_v4_counters', JSON.stringify(gameCounters)); localStorage.setItem('ton_v4_terror_db', JSON.stringify(terrorDatabase));
+        localStorage.setItem('ton_v5_terror_memos', JSON.stringify(terrorMemos)); localStorage.setItem('ton_v6_custom_alt_master', JSON.stringify(customAltTerrors));
+        localStorage.setItem('ton_v7_custom_effects', JSON.stringify(customEffects)); localStorage.setItem('ton_v4_display_limit', displayMaxLimit.toString());
+        localStorage.setItem('ton_v8_max_history', maxHistorySave.toString());
+    }
+
+    /* ====== P2P MULTIPLAYER LOGIC ====== */
+    function switchMultiTab(tabType) {
+        if (tabType === 'create') {
+            elements.tabCreate.classList.add('active');
+            elements.tabJoin.classList.remove('active');
+            elements.multiCreateSection.style.display = 'block';
+            elements.multiJoinSection.style.display = 'none';
+        } else {
+            elements.tabJoin.classList.add('active');
+            elements.tabCreate.classList.remove('active');
+            elements.multiJoinSection.style.display = 'block';
+            elements.multiCreateSection.style.display = 'none';
+        }
+    }
+
+    function toggleCreatePassword() {
+        if (elements.createRoomType.value === 'public') {
+            elements.createPasswordGroup.style.display = 'none';
+            elements.createPassword.value = '';
+        } else {
+            elements.createPasswordGroup.style.display = 'block';
+        }
+    }
+
+    function validatePlayerName() {
+        const rawName = elements.myPlayerNameInput.value.trim();
+        if(!rawName) { alert("あなたの表示名（ユーザー名）を入力してください。"); return false; }
+        
+        // 【重要】シークレットキーによる製作者認証
+        const parts = rawName.split('#');
+        localPlayerName = parts[0];
+        
+        // パスワードが一致した場合のみ、本物のVRC IDをセットする
+        if (localPlayerName === "犬峰ゆた" && parts[1] === "cReaR0r202") {
+            localVrcId = AUTHOR_ID;
+        } else {
+            // パスワードが一致しない、または別名の場合はランダムなゲストIDを発行
+            localVrcId = "guest_" + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // 入力された文字列（#付き）をそのまま保存して、次回入力の手間を省く
+        localStorage.setItem('ton_multi_player_name', rawName);
+        return true;
+    }
+
+    function enterRoomUI(roomId, type, pwd) {
+        isInRoom = true;
+        currentRoomName = roomId;
+        currentRoomType = type;
+        currentRoomPassword = pwd;
+        
+        multiSessionSurvival = 0;
+        multiSessionStreak = 0;
+        localPlayerInfo.survivalCount = 0;
+        localPlayerInfo.sessionStreak = 0;
+        
+        elements.myTagSelect.value = "none";
+        localPlayerInfo.tag = "none";
+        
+        elements.displayRoomName.textContent = "Room ID: " + roomId.substring(0, 8) + "... (" + (type === 'public' ? "オープン" : "鍵部屋") + ")";
+        elements.multiplayerPanel.style.display = "block";
+        elements.btnCopyInvite.style.display = "inline-block";
+        
+        toggleModal('multiplayerModal', false);
+        
+        if(type === 'public') {
+            elements.multiPrivateContent.style.display = "none";
+            elements.multiPublicContent.style.display = "block";
+        } else {
+            elements.multiPrivateContent.style.display = "block";
+            elements.multiPublicContent.style.display = "none";
+        }
+    }
+
+    function createRoom() {
+        if(!validatePlayerName()) return;
+        
+        const type = elements.createRoomType.value;
+        const pwd = elements.createPassword.value.trim();
+        if(type === 'private' && !pwd) { alert("鍵部屋を作成するにはパスワードを設定してください。"); return; }
+        
+        if(peer) peer.destroy();
+        peer = new Peer(); 
+        
+        peer.on('open', (id) => {
+            isHost = true;
+            localPlayerInfo.vrcId = localVrcId;
+            localPlayerInfo.name = localPlayerName; // #以降は省かれた純粋な名前のみ送信される
+            localPlayerInfo.isHost = true;
+            localPlayerInfo.isAnonymous = false;
+            localPlayerInfo.isAlive = !currentRoundData.isDead;
+            
+            roomPlayers = [{ peerId: id, info: localPlayerInfo }];
+            connections = [];
+            
+            enterRoomUI(id, type, pwd);
+            broadcastRoomState();
+        });
+        
+        peer.on('connection', (conn) => {
+            conn.on('open', () => {
+                if(currentRoomType === 'private') {
+                    if(conn.metadata.password !== currentRoomPassword) {
+                        conn.send({ type: "ERROR", message: "パスワードが違います" });
+                        setTimeout(() => conn.close(), 500);
+                        return;
+                    }
+                }
+                
+                connections.push(conn);
+                roomPlayers.push({ peerId: conn.peer, info: conn.metadata.playerInfo });
+                broadcastRoomState();
+            });
+
+            conn.on('data', (data) => {
+                handleNetworkDataHost(conn.peer, data);
+            });
+            
+            conn.on('close', () => {
+                connections = connections.filter(c => c !== conn);
+                roomPlayers = roomPlayers.filter(p => p.peerId !== conn.peer);
+                broadcastRoomState();
+            });
+        });
+        
+        peer.on('error', (err) => {
+            alert("P2P通信エラー: " + err.type);
+        });
+    }
+
+    function joinRoom() {
+        if(!validatePlayerName()) return;
+        
+        const rName = elements.joinRoomName.value.trim();
+        const pwd = elements.joinPassword.value.trim();
+        const anon = elements.anonymousJoinCheck.checked;
+        
+        if(!rName) { alert("参加する部屋IDを入力してください。"); return; }
+        
+        localPlayerInfo.vrcId = localVrcId;
+        localPlayerInfo.name = localPlayerName;
+        localPlayerInfo.isHost = false;
+        localPlayerInfo.isAnonymous = anon;
+        localPlayerInfo.isAlive = !currentRoundData.isDead;
+
+        if(peer) peer.destroy();
+        peer = new Peer();
+        
+        peer.on('open', (id) => {
+            hostConnection = peer.connect(rName, { metadata: { password: pwd, playerInfo: localPlayerInfo } });
+            
+            hostConnection.on('open', () => {
+                isHost = false;
+                enterRoomUI(rName, pwd ? 'private' : 'public', pwd);
+            });
+            
+            hostConnection.on('data', (data) => {
+                handleNetworkDataClient(data);
+            });
+            
+            hostConnection.on('close', () => {
+                alert("ホストから切断されました。");
+                leaveRoom();
+            });
+        });
+        
+        peer.on('error', (err) => {
+            if(err.type === 'peer-unavailable') {
+                alert("指定された部屋IDが見つかりません。ホストが退出したか、IDが間違っています。");
+            } else {
+                alert("P2P通信エラー: " + err.type);
+            }
+        });
+    }
+
+    function copyInviteInfo() {
+        if(!isInRoom) return;
+        const typeStr = currentRoomType === 'private' ? "鍵部屋" : "オープン部屋";
+        const inviteText = `【ToN マルチプレイ連携】\n部屋ID: ${currentRoomName}\nパスワード: ${currentRoomPassword || 'なし'}\n（${typeStr}）\n※ツールから「部屋に参加」タブを開いて入力してください。`;
+        navigator.clipboard.writeText(inviteText).then(() => { 
+            const orig = elements.btnCopyInvite.textContent; 
+            elements.btnCopyInvite.textContent = "✅ コピー完了"; 
+            setTimeout(() => { elements.btnCopyInvite.textContent = orig; }, 1500); 
+        });
+    }
+
+    function leaveRoom() {
+        if(peer) {
+            peer.destroy();
+            peer = null;
+        }
+        isInRoom = false;
+        isHost = false;
+        hostConnection = null;
+        connections = [];
+        roomPlayers = [];
+        elements.multiplayerPanel.style.display = "none";
+    }
+
+    function sendToNetwork(data) {
+        if (!isInRoom) return;
+        if (isHost) {
+            connections.forEach(c => { if(c.open) c.send(data); });
+        } else {
+            if (hostConnection && hostConnection.open) hostConnection.send(data);
+        }
+    }
+
+    function broadcastRoomState() {
+        if(!isHost) return;
+        const state = { players: roomPlayers.map(p => p.info) };
+        sendToNetwork({ type: "ROOM_STATE_UPDATE", state: state });
+        renderMultiplayerState(state); 
+    }
+
+    function handleNetworkDataHost(peerId, data) {
+        if (data.type === "UPDATE_TAG") {
+            let p = roomPlayers.find(p => p.peerId === peerId);
+            if (p) { p.info.tag = data.tag; broadcastRoomState(); }
+        } else if (data.type === "ALIVE_STATE") {
+            let p = roomPlayers.find(p => p.peerId === peerId);
+            if (p) { p.info.isAlive = data.isAlive; broadcastRoomState(); }
+        } else if (data.type === "UPDATE_STATS") {
+            let p = roomPlayers.find(p => p.peerId === peerId);
+            if (p) { p.info.survivalCount = data.survivalCount; p.info.sessionStreak = data.sessionStreak; broadcastRoomState(); }
+        } else if (data.type === "SYNC_ENVIRONMENT" || data.type === "SYNC_HISTORY" || data.type === "SYNC_ROUND" || data.type === "SYNC_TERRORS") {
+            handleGameSyncData(data);
+            connections.forEach(c => { if(c.peer !== peerId && c.open) c.send(data); });
+        }
+    }
+
+    function handleNetworkDataClient(data) {
+        if (data.type === "ERROR") {
+            alert(data.message);
+            leaveRoom();
+        } else if (data.type === "ROOM_STATE_UPDATE") {
+            renderMultiplayerState(data.state);
+        } else {
+            handleGameSyncData(data);
+        }
+    }
+
+    function handleGameSyncData(data) {
+        if (data.type === "SYNC_ENVIRONMENT") {
+            trackerState = { ...trackerState, ...data.tracker }; updateLamps();
+        } else if (data.type === "SYNC_HISTORY") {
+            if(currentRoomType === 'public' || data.force) {
+                globalHistory.unshift(data.log); applyHistoryLimit(); renderTables(); saveLogs();
+            }
+        } else if (data.type === "SYNC_ROUND") {
+            currentRoundData.type = data.roundType;
+            elements.curRoundType.textContent = data.roundType;
+            checkShopWarningNeeds(data.roundType);
+        } else if (data.type === "SYNC_TERRORS") {
+            data.terrors.forEach(t => activeTerrorSet.add(t));
+            updateActiveTerrorDisplay();
+            checkSpecialEffect();
+        }
+    }
+
+    function updateMyTag() {
+        if(!isInRoom || currentRoomType === 'public') return;
+        const tag = elements.myTagSelect.value;
+        localPlayerInfo.tag = tag;
+        
+        if (isHost) {
+            let p = roomPlayers.find(p => p.peerId === peer.id);
+            if(p) p.info.tag = tag;
+            broadcastRoomState();
+        } else {
+            sendToNetwork({ type: "UPDATE_TAG", tag: tag });
+        }
+    }
+
+    function forceRespawn() {
+        if(!isInRoom || currentRoomType === 'public') return;
+        if(!confirm("任意リスポーンを宣言し、死亡扱いとしてチームに共有しますか？")) return;
+        currentRoundData.isDead = true; 
+        localPlayerInfo.isAlive = false;
+        
+        multiSessionStreak = 0;
+        localPlayerInfo.sessionStreak = 0;
+
+        if (isHost) {
+            let p = roomPlayers.find(p => p.peerId === peer.id);
+            if(p) { p.info.isAlive = false; p.info.sessionStreak = 0; }
+            broadcastRoomState();
+        } else {
+            sendToNetwork({ type: "ALIVE_STATE", isAlive: false });
+            sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: 0 });
+        }
+    }
+
+    function renderMultiplayerState(state) {
+        const renderList = state.players || [];
+        elements.playerListContainer.innerHTML = '';
+        let totalAlive = 0; let validPlayers = 0; const tagCounts = {};
+        
+        let maxStreakInRoom = 0;
+        renderList.forEach(p => {
+            if (!p.isAnonymous && p.sessionStreak > maxStreakInRoom) {
+                maxStreakInRoom = p.sessionStreak;
+            }
+        });
+
+        renderList.forEach(player => {
+            if (player.isAnonymous) return;
+
+            const li = document.createElement('li');
+            li.className = `player-item ${!player.isAlive ? 'dead' : ''}`;
+
+            let hostMark = player.isHost ? '<span class="host-mark">⭐</span>' : '';
+            let streakCrown = (player.sessionStreak && player.sessionStreak > 0 && player.sessionStreak >= maxStreakInRoom) ? '👑' : '';
+            
+            // 認証済みの確実なIDを持っている場合のみバッジを付与する
+            let isAuthor = (player.vrcId === AUTHOR_ID);
+            
+            let nameContent = `<span class="player-name">${player.name}</span>`;
+            if (isAuthor) {
+                nameContent = `<span class="dev-badge">🛠️ Creator</span> <span class="player-name" style="background: var(--dev-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:bold;">${player.name}</span>`;
+            }
+
+            let statsStr = `<span style="color:var(--text-muted); font-size:0.8rem;">[生還:${player.survivalCount || 0} / 連勝:${player.sessionStreak || 0}]</span>`;
+            
+            let tagDisplay = player.tag !== 'none' ? `<span style="color:var(--info); font-size:0.8rem;">[${tagNamesMap[player.tag] || player.tag}]</span>` : '';
+
+            li.innerHTML = `
+                <div class="player-info">${hostMark} ${statsStr} ${nameContent} ${streakCrown}</div>
+                <div>${tagDisplay}</div>
+            `;
+            elements.playerListContainer.appendChild(li);
+
+            if (player.tag !== 'afk') {
+                validPlayers++;
+                if (player.isAlive) totalAlive++;
+            }
+            if (player.tag !== 'none' && player.tag !== 'afk') {
+                tagCounts[player.tag] = (tagCounts[player.tag] || 0) + 1;
+            }
+        });
+
+        const rate = validPlayers > 0 ? Math.floor((totalAlive / validPlayers) * 100) : 0;
+        elements.teamSurvivalRate.textContent = `${rate}%`;
+
+        elements.tagSummaryContainer.innerHTML = '';
+        for (const [tag, count] of Object.entries(tagCounts)) {
+            const badge = document.createElement('div'); badge.className = 'tag-badge';
+            badge.textContent = `${tagNamesMap[tag] || tag}: ${count}人`;
+            elements.tagSummaryContainer.appendChild(badge);
+        }
+    }
+    /* ============================ */
+
+    function exportData() {
+        const data = { globalHistory, altHistory, gameCounters, trackerState, terrorDatabase, terrorMemos, customAltTerrors, customEffects, displayMaxLimit, maxHistorySave };
+        const jsonStr = JSON.stringify(data); const blob = new Blob([jsonStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url;
+        a.download = `ToN_Analyzer_Backup_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+    function importData(event) {
+        const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if(data.globalHistory) globalHistory = data.globalHistory; if(data.altHistory) altHistory = data.altHistory; if(data.gameCounters) gameCounters = data.gameCounters;
+                if(data.trackerState) trackerState = data.trackerState; if(data.terrorDatabase) terrorDatabase = data.terrorDatabase; if(data.terrorMemos) terrorMemos = data.terrorMemos;
+                if(data.customAltTerrors) customAltTerrors = data.customAltTerrors; if(data.customEffects) customEffects = data.customEffects;
+                if(data.displayMaxLimit) displayMaxLimit = data.displayMaxLimit; if(data.maxHistorySave) maxHistorySave = data.maxHistorySave;
+                saveLogs(); elements.selectLimit.value = displayMaxLimit; elements.numMaxHistory.value = maxHistorySave; updateCountersDisplay(); updateLamps();
+                renderTerrorDatabase(); renderTables(); renderMasterTags(); renderCustomEffects(); alert("データの復元が完了しました。");
+            } catch (err) { alert("ファイルの読み込みに失敗しました。"); }
+            event.target.value = ''; 
+        }; reader.readAsText(file);
+    }
+
+    function saveMaxHistory() {
+        const val = parseInt(elements.numMaxHistory.value, 10);
+        if (!isNaN(val) && val >= 50) { maxHistorySave = val; applyHistoryLimit(); renderTables(); alert(`履歴保存上限: ${maxHistorySave}件に設定しました。`); } 
+        else { alert("50以上の正しい数値を入力してください。"); elements.numMaxHistory.value = maxHistorySave; }
+    }
+    function applyHistoryLimit() {
+        let changed = false;
+        if (globalHistory.length > maxHistorySave) { globalHistory = globalHistory.slice(0, maxHistorySave); changed = true; }
+        if (altHistory.length > maxHistorySave) { altHistory = altHistory.slice(0, maxHistorySave); changed = true; }
+        if (changed) saveLogs();
+    }
+
+    function renderCustomEffects() {
+        elements.customEffectsContainer.innerHTML = "";
+        customEffects.forEach((eff, index) => {
+            const row = document.createElement('div'); row.className = "effect-row";
+            const info = document.createElement('div'); info.className = "effect-info";
+            info.innerHTML = `<span style="color:var(--text-muted);">[${ROUND_NAME_MAP[eff.roundType] || eff.roundType}]</span> <strong>${eff.terror}</strong> <span class="effect-color-preview" style="background-color: ${eff.color};"></span> <span style="color:${eff.color}">${eff.color}</span>`;
+            const btns = document.createElement('div'); btns.style.display = "flex"; btns.style.gap = "6px";
+            const btnTest = document.createElement('button'); btnTest.textContent = "確認"; btnTest.className = "btn-wiki-search"; btnTest.style.margin = "0"; btnTest.onclick = () => testCustomEffect(eff.color);
+            const btnDel = document.createElement('button'); btnDel.textContent = "削除"; btnDel.className = "btn-section-reset"; btnDel.onclick = () => { customEffects.splice(index, 1); saveLogs(); renderCustomEffects(); };
+            btns.appendChild(btnTest); btns.appendChild(btnDel); row.appendChild(info); row.appendChild(btns); elements.customEffectsContainer.appendChild(row);
+        });
+    }
+
+    function addCustomEffect() {
+        const round = elements.selEffectRound.value; const terror = elements.txtEffectTerror.value.trim(); const color = elements.txtEffectColorHex.value; 
+        if (!terror) return; if (!/^#[0-9A-Fa-f]{6}$/i.test(color)) return;
+        customEffects.push({ roundType: round, terror: terror, color: color });
+        elements.txtEffectTerror.value = ""; elements.colEffectColor.value = "#ff4757"; elements.txtEffectColorHex.value = "#ff4757"; saveLogs(); renderCustomEffects();
+    }
+
+    function testCustomEffect(colorCode) {
+        isTestingEffect = true; document.body.style.setProperty('--special-color', colorCode); document.body.classList.add('special-border');
+        clearTimeout(testEffectTimeout); testEffectTimeout = setTimeout(() => { isTestingEffect = false; checkSpecialEffect(); }, 3000);
+    }
+    function checkSpecialEffect() {
+        if (isTestingEffect) return; 
+        if (!currentRoundData.active) { document.body.classList.remove('special-border'); return; }
+        const typeLower = currentRoundData.type.toLowerCase(); const terrors = Array.from(activeTerrorSet).map(t => t.toLowerCase());
+        let isSpecial = false; let specialColor = '';
+        for (const eff of customEffects) {
+            if (typeLower.includes(eff.roundType.toLowerCase()) && terrors.includes(eff.terror.toLowerCase())) { isSpecial = true; specialColor = eff.color; break; }
+        }
+        if (isSpecial) { document.body.style.setProperty('--special-color', specialColor); document.body.classList.add('special-border'); } 
+        else { document.body.classList.remove('special-border'); }
+    }
+
+    function renderMasterTags() {
+        elements.masterTagsContainer.innerHTML = "";
+        [...DEFAULT_ALT_TERRORS, ...customAltTerrors].forEach(name => {
+            const isCustom = customAltTerrors.includes(name);
+            const tag = document.createElement('span'); tag.className = "master-tag"; tag.textContent = name;
+            if (isCustom) { const del = document.createElement('span'); del.className = "master-tag-del"; del.textContent = "×"; del.onclick = () => { customAltTerrors = customAltTerrors.filter(n => n !== name); saveLogs(); renderMasterTags(); renderTables(); }; tag.appendChild(del); }
+            elements.masterTagsContainer.appendChild(tag);
+        });
+    }
+    function addAltTerrorMaster() {
+        const inputVal = elements.txtNewAltTerror.value.trim(); if (!inputVal) return;
+        if (DEFAULT_ALT_TERRORS.includes(inputVal) || customAltTerrors.includes(inputVal)) { alert("登録済みです"); return; }
+        customAltTerrors.push(inputVal); elements.txtNewAltTerror.value = ""; saveLogs(); renderMasterTags(); renderTables();
+    }
+
+    function toggleModal(modalId, open) {
+        const modal = document.getElementById(modalId);
+        if(open) { if(modalId === 'managementModal') { elements.chkStreak.checked = false; elements.chkDb.checked = false; } modal.classList.add('open'); } 
+        else { modal.classList.remove('open'); }
+    }
+
+    function toggleEditMode() {
+        isEditModeEnabled = !isEditModeEnabled;
+        if(isEditModeEnabled) { document.body.classList.add('edit-mode-enabled'); elements.btnEditMode.textContent = "編集モード: ON"; elements.btnEditMode.classList.add('active'); } 
+        else { document.body.classList.remove('edit-mode-enabled'); elements.btnEditMode.textContent = "編集モード: OFF"; elements.btnEditMode.classList.remove('active'); }
+    }
+
+    function toggleTrackerLamp(key) {
+        if(!isEditModeEnabled) return;
+        if(trackerState.hasOwnProperty(key)) { 
+            trackerState[key] = !trackerState[key]; saveLogs(); updateLamps();
+            sendToNetwork({ type: "SYNC_ENVIRONMENT", tracker: trackerState });
+        }
+    }
+
+    function editCounterValue(key) {
+        if(!isEditModeEnabled) return;
+        if (key === 'bestStreaks') {
+            const input = prompt("【手動数値編集】\n最高連勝のTop3をカンマ区切りで入力 (例: 10,5,3)", gameCounters.bestStreaks.join(','));
+            if (input === null) return;
+            const parts = input.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+            while(parts.length < 3) parts.push(0);
+            gameCounters.bestStreaks = parts.sort((a,b)=>b-a).slice(0,3); saveLogs(); updateCountersDisplay(); return;
+        }
+        const input = prompt(`数値を入力:`, gameCounters[key]);
+        if(input === null) return; const parsed = parseInt(input, 10);
+        if(!isNaN(parsed) && parsed >= 0) { gameCounters[key] = parsed; saveLogs(); updateCountersDisplay(); }
+    }
+
+    function editLogTerrorText(index) {
+        if(!isEditModeEnabled) return;
+        const newText = prompt("【手動編集】", globalHistory[index].terrors);
+        if(newText) { globalHistory[index].terrors = newText.trim(); saveLogs(); renderTables(); }
+    }
+    function toggleAltResult(index) {
+        if(!isEditModeEnabled) return;
+        const targetItem = altHistory[index]; targetItem.isDead = !targetItem.isDead;
+        const match = globalHistory.find(g => g.time === targetItem.time && g.type === targetItem.type);
+        if(match) match.isDead = targetItem.isDead; saveLogs(); renderTables();
+    }
+
+    function cleanTerrorName(name, currentRoundType = "") {
+        if (!name) return ""; let cleaned = name.replace(/\s*\(LVL\s*\d+\)/gi, "").trim();
+        if (/^[?？]+$/.test(cleaned)) { return (currentRoundType && currentRoundType.toLowerCase().includes("unbound")) ? "???" : ""; }
+        if (cleaned.toLowerCase() === "sonic?") return ""; if (cleaned.toLowerCase() === "lone agent") return "Bliss";
+        return cleaned;
+    }
+
+    function openTerrorMemo(terrorName) {
+        const cleanedName = cleanTerrorName(terrorName, currentRoundData.type);
+        if(!cleanedName || cleanedName === "不明なテラー" || cleanedName === "探索中...") return;
+        currentSelectedMemoTerror = cleanedName; 
+        if(elements.memoModalTitle) {
+            elements.memoModalTitle.textContent = `【${cleanedName}】`;
+        }
+        
+        const toTitleCase = (str) => {
+            const exceptions = { "her": "HER", "mx": "MX", "bff": "BFF", "censored": "CENSORED" };
+            if (exceptions[str.toLowerCase()]) return exceptions[str.toLowerCase()];
+            return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        };
+        if(elements.btnWikiSearch) {
+            elements.btnWikiSearch.href = "https://wikiwiki.jp/ton_jp/" + encodeURIComponent(toTitleCase(cleanedName));
+        }
+        
+        if (terrorMemos[cleanedName]) {
+            const m = terrorMemos[cleanedName]; elements.memoStun.checked = !!m.stun; elements.memoGaze.checked = !!m.gaze; elements.memoInstant.checked = !!m.instant; elements.memoRating.value = m.rating || "★★★"; elements.memoText.value = m.text || "";
+        } else { elements.memoStun.checked = false; elements.memoGaze.checked = false; elements.memoInstant.checked = false; elements.memoRating.value = "★★★"; elements.memoText.value = ""; }
+        toggleModal('terrorMemoModal', true);
+    }
+
+    function saveTerrorMemo() {
+        if (!currentSelectedMemoTerror) return;
+        terrorMemos[currentSelectedMemoTerror] = { stun: elements.memoStun.checked, gaze: elements.memoGaze.checked, instant: elements.memoInstant.checked, rating: elements.memoRating.value, text: elements.memoText.value };
+        saveLogs(); toggleModal('terrorMemoModal', false); renderTerrorDatabase(); updateActiveTerrorDisplay(); 
+    }
+
+    function resetSection(sectionKey) {
+        if (!confirm(`リセットして初期化しますか？`)) return;
+        if (sectionKey === 'counters') { gameCounters.total = 0; gameCounters.survival = 0; gameCounters.currentStreak = 0; updateCountersDisplay(); }
+        else if (sectionKey === 'lamps') { trackerState = { mystic: false, twilight: false, blood: false, solstice: false, coldNight: false, bigBird: false, punishingBird: false, judgementBird: false }; updateLamps(); }
+        else if (sectionKey === 'alt') { altHistory = []; renderTables(); } else if (sectionKey === 'global') { globalHistory = []; renderTables(); }
+        saveLogs();
+    }
+
+    function executeSelectedDeletions() {
+        if (elements.chkStreak.checked) { gameCounters.bestStreaks = [0,0,0]; updateCountersDisplay(); }
+        if (elements.chkDb.checked) { terrorDatabase = {}; renderTerrorDatabase(); }
+        saveLogs(); renderTables(); toggleModal('managementModal', false);
+    }
+
+    function clearShopWarning() { elements.shopWarningBar.style.display = "none"; }
+    function changeDisplayLimit() { displayMaxLimit = parseInt(elements.selectLimit.value, 10) || 100; saveLogs(); renderTables(); }
+
+    function updateCountersDisplay() {
+        elements.cntTotal.textContent = gameCounters.total; elements.cntSurvival.textContent = gameCounters.survival;
+        const rate = gameCounters.total > 0 ? Math.round((gameCounters.survival / gameCounters.total) * 100) : 0;
+        elements.cntRate.textContent = `${rate}%`; elements.cntCStreak.textContent = gameCounters.currentStreak; 
+        const top3 = [...gameCounters.bestStreaks, gameCounters.currentStreak].sort((a,b) => b-a).slice(0, 3);
+        elements.cntBStreak1.textContent = `1st: ${top3[0]}`; elements.cntBStreak2.textContent = `2nd: ${top3[1]}`; elements.cntBStreak3.textContent = `3rd: ${top3[2]}`;
+    }
+
+    function updateLamps() {
+        elements.lampMystic.classList.toggle('active', trackerState.mystic); elements.lampTwilight.classList.toggle('active', trackerState.twilight); 
+        elements.lampBlood.classList.toggle('active', trackerState.blood); elements.lampSolstice.classList.toggle('active', trackerState.solstice);
+        elements.lampColdNight.classList.toggle('active', trackerState.coldNight); elements.lampBigBird.classList.toggle('active', trackerState.bigBird); 
+        elements.lampPunishingBird.classList.toggle('active', trackerState.punishingBird); elements.lampJudgementBird.classList.toggle('active', trackerState.judgementBird);
+    }
+
+    function formatTerrorsForTable(terrorsStr) {
+        if (!terrorsStr) return "";
+        return terrorsStr.split('&').map(t => {
+            let trimT = t.trim(); let lowerName = trimT.toLowerCase();
+            if (lowerName.includes("alternate")) return `<span class="terror-alt">${trimT}</span>`;
+            if (DEFAULT_ALT_TERRORS.includes(trimT) || customAltTerrors.includes(trimT)) return `<span class="terror-midnight">${trimT}</span>`;
+            return trimT;
+        }).join(' <span style="color:var(--text-muted)">&</span> ');
+    }
+
+    function renderTables() {
+        elements.globalHistoryBody.innerHTML = "";
+        globalHistory.slice(0, displayMaxLimit).forEach((item, index) => {
+            const row = document.createElement('tr'); const isMid = item.type && item.type.toLowerCase().includes("midnight");
+            row.innerHTML = `<td>${item.time}</td><td>${isMid ? `<span class="terror-midnight">${item.type}</span>` : item.type}</td><td><span class="editable-log-text" onclick="editLogTerrorText(${index})">${formatTerrorsForTable(item.terrors)}</span></td>`;
+            elements.globalHistoryBody.appendChild(row);
+        });
+        elements.altHistoryBody.innerHTML = "";
+        altHistory.slice(0, displayMaxLimit).forEach((item, index) => {
+            const row = document.createElement('tr'); const resultMark = item.isDead ? '<span class="result-cross">✕</span>' : '<span class="result-circle">○</span>';
+            const typeHtml = item.type.toLowerCase().includes("alternate") ? `<span class="terror-alt">${item.type}</span>` : `<span class="terror-midnight">${item.type}</span>`;
+            row.innerHTML = `<td>${item.time}</td><td>${typeHtml}</td><td>${formatTerrorsForTable(item.terrors)}</td><td style="text-align: center;"><span class="editable-result-mark" onclick="toggleAltResult(${index})">${resultMark}</span></td>`;
+            elements.altHistoryBody.appendChild(row);
+        });
+    }
+
+    function sortStats(key) {
+        if (currentSort.key === key) { currentSort.order = currentSort.order === 'desc' ? 'asc' : 'desc'; } else { currentSort.key = key; currentSort.order = 'desc'; } renderTerrorDatabase();
+    }
+
+    function renderTerrorDatabase() {
+        const body = elements.terrorStatsBody; const query = elements.terrorSearchInput.value.toLowerCase(); body.innerHTML = "";
+        let entries = Object.entries(terrorDatabase).map(([name, data]) => ({ name, met: data.met, survivability: data.met > 0 ? (data.survived / data.met) : 0 }));
+        if (query) entries = entries.filter(e => e.name.toLowerCase().includes(query));
+        entries.sort((a, b) => currentSort.order === 'desc' ? (b[currentSort.key] - a[currentSort.key]) : (a[currentSort.key] - b[currentSort.key]));
+        if (entries.length === 0) { body.innerHTML = '<tr><td colspan="3" style="color: var(--text-muted); text-align: center;">該当なし</td></tr>'; return; }
+        entries.forEach(item => {
+            const rate = Math.round(item.survivability * 100); const row = document.createElement('tr');
+            row.innerHTML = `<td><strong class="clickable-terror" onclick="openTerrorMemo('${item.name.replace(/'/g, "\\'")}')">${item.name}</strong></td><td style="text-align: center;">${item.met}</td><td style="text-align: center; font-weight: bold; color: ${rate >= 50 ? 'var(--success)' : 'var(--accent)'};">${rate}%</td>`;
+            body.appendChild(row);
+        });
+    }
+
+    function parseGameEvents(name, type) {
+        const cleanedName = cleanTerrorName(name, type); const lowerName = cleanedName ? cleanedName.toLowerCase() : ""; const lowerType = type ? type.toLowerCase() : "";
+        let envChanged = false;
+        if (lowerName.includes("big bird") && !trackerState.bigBird) { trackerState.bigBird = true; envChanged = true; }
+        if (lowerName.includes("punishing bird") && !trackerState.punishingBird) { trackerState.punishingBird = true; envChanged = true; }
+        if (lowerName.includes("judgement bird") && !trackerState.judgementBird) { trackerState.judgementBird = true; envChanged = true; }
+        if (lowerType.includes("mystic") && !trackerState.mystic) { trackerState.mystic = true; envChanged = true; }
+        if (lowerType.includes("twilight") && !trackerState.twilight) { trackerState.twilight = true; envChanged = true; }
+        if (lowerType.includes("solstice") && !trackerState.solstice) { trackerState.solstice = true; envChanged = true; }
+        if (lowerType.includes("cold night") && !trackerState.coldNight) { trackerState.coldNight = true; envChanged = true; }
+        if ((lowerType.includes("blood") || lowerName.includes("blood")) && !(lowerType.includes("bloodbath") || lowerName.includes("bloodbath")) && !trackerState.blood) { trackerState.blood = true; envChanged = true; }
+        
+        saveLogs(); updateLamps();
+        if(envChanged) sendToNetwork({ type: "SYNC_ENVIRONMENT", tracker: trackerState });
+    }
+
+    function generateVRChatUrl(rawString) {
+        if (!rawString || rawString.trim() === "" || rawString === "未接続") return ""; if (!rawString.includes("wrld_")) return "";
+        const parts = rawString.split(':');
+        return parts.length >= 2 ? "https://vrchat.com/home/launch?worldId=" + encodeURIComponent(parts[0]) + "&instanceId=" + encodeURIComponent(parts.slice(1).join(':')) : "https://vrchat.com/home/launch?worldId=" + encodeURIComponent(rawString.trim());
+    }
+
+    function handleInstanceUpdate(rawString) {
+        currentInstanceRawString = rawString;
+        if (rawString.includes("wrld_")) {
+            elements.curInstance.textContent = rawString; const vrcUrl = generateVRChatUrl(rawString); elements.btnCopyUrl.disabled = false; elements.btnOpenUrl.href = vrcUrl; elements.btnOpenUrl.style.display = "inline-block"; elements.btnOpenUrlDummy.style.display = "none";
+        } else {
+            if (rawString !== "未接続" && rawString !== "Unconnected" && rawString.trim() !== "") elements.curInstance.textContent = rawString;
+            else { elements.curInstance.textContent = "未接続"; elements.btnCopyUrl.disabled = true; elements.btnOpenUrl.href = "#"; elements.btnOpenUrl.style.display = "none"; elements.btnOpenUrlDummy.style.display = "inline-block"; }
+        }
+    }
+    function copyInstanceUrl() {
+        const vrcUrl = generateVRChatUrl(currentInstanceRawString); if (vrcUrl === "") return;
+        navigator.clipboard.writeText(vrcUrl).then(() => { const originalText = elements.btnCopyUrl.textContent; elements.btnCopyUrl.textContent = "コピー完了！"; setTimeout(() => { elements.btnCopyUrl.textContent = originalText; }, 1500); });
+    }
+
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { toggleModal('managementModal', false); toggleModal('terrorMemoModal', false); toggleModal('multiplayerModal', false); } });
+
+    function updateActiveTerrorDisplay() {
+        if (!currentRoundData.active) return;
+        let array = Array.from(activeTerrorSet); let finalSet = new Set(array); let lowerToOriginal = {};
+        array.forEach(item => lowerToOriginal[item.toLowerCase()] = item);
+        for (const [key, exclusions] of Object.entries(EXCLUSION_MAP)) {
+            if (lowerToOriginal[key.toLowerCase()]) exclusions.forEach(ex => { if (lowerToOriginal[ex.toLowerCase()]) finalSet.delete(lowerToOriginal[ex.toLowerCase()]); });
+        }
+        
+        if (finalSet.size === 0) { elements.curTerror.textContent = "探索中..."; return; }
+        elements.curTerror.innerHTML = "";
+        finalSet.forEach((tName) => {
+            const p = document.createElement('p'); p.className = "active-terror-p";
+            const nameSpan = document.createElement('span'); nameSpan.className = "clickable-terror";
+            let lowerName = tName.toLowerCase();
+            if (lowerName.includes("alternate")) nameSpan.classList.add('terror-alt');
+            else if (DEFAULT_ALT_TERRORS.includes(tName) || customAltTerrors.includes(tName)) nameSpan.classList.add('terror-midnight');
+            nameSpan.textContent = tName; nameSpan.onclick = () => openTerrorMemo(tName); p.appendChild(nameSpan);
+            const memo = terrorMemos[tName];
+            if (memo) {
+                if (memo.stun) { const sBadge = document.createElement('span'); sBadge.className = "terror-badge badge-stun"; sBadge.textContent = "スタン可"; p.appendChild(sBadge); }
+                if (memo.gaze) { const aBadge = document.createElement('span'); aBadge.className = "terror-badge badge-achievement"; aBadge.textContent = "実績"; p.appendChild(aBadge); }
+            }
+            elements.curTerror.appendChild(p);
+        });
+    }
+
+    function checkShopWarningNeeds(roundType) {
+        if (!roundType) return; const upper = roundType.toUpperCase();
+        if (upper.includes("PUNISH") || upper.includes("SABOTAGE") || upper.includes("PAGE") || upper.includes("RANDOM")) { elements.shopWarningBar.style.display = "block"; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    }
+
+    function finalizeRound() {
+        if (!currentRoundData.active) return;
+        currentRoundData.active = false; const timeStr = new Date().toLocaleTimeString();
+        let array = Array.from(activeTerrorSet); let finalSet = new Set(array); let lowerToOriginal = {};
+        array.forEach(item => lowerToOriginal[item.toLowerCase()] = item);
+        for (const [key, exclusions] of Object.entries(EXCLUSION_MAP)) { if (lowerToOriginal[key.toLowerCase()]) exclusions.forEach(ex => { if (lowerToOriginal[ex.toLowerCase()]) finalSet.delete(lowerToOriginal[ex.toLowerCase()]); }); }
+        activeTerrorSet = finalSet;
+        
+        let terrorsStr = activeTerrorSet.size > 0 ? Array.from(activeTerrorSet).join(" & ") : "不明なテラー";
+        if(terrorsStr === "") terrorsStr = "不明なテラー";
+        
+        gameCounters.total++;
+        if (!currentRoundData.isDead) { gameCounters.survival++; gameCounters.currentStreak++; }
+        else { if (gameCounters.currentStreak > 0) { gameCounters.bestStreaks.push(gameCounters.currentStreak); gameCounters.bestStreaks.sort((a,b) => b-a); gameCounters.bestStreaks = gameCounters.bestStreaks.slice(0, 3); } gameCounters.currentStreak = 0; }
+        
+        activeTerrorSet.forEach(tName => {
+            if (tName && tName !== "不明なテラー") {
+                if (!terrorDatabase[tName]) terrorDatabase[tName] = { met: 0, survived: 0 };
+                terrorDatabase[tName].met++; if (!currentRoundData.isDead) terrorDatabase[tName].survived++;
+            }
+        });
+        
+        const logItem = { time: timeStr, type: currentRoundData.type, terrors: terrorsStr, isDead: currentRoundData.isDead };
+        globalHistory.unshift(logItem); 
+        
+        const allMasters = [...DEFAULT_ALT_TERRORS, ...customAltTerrors];
+        const isAlt = terrorsStr.split(/[&,]/).map(t => t.trim().toLowerCase()).some(indiv => 
+            !BLOCK_LIST.some(b => b === "parhelion's victims" ? indiv.includes(b) : indiv === b) && 
+            allMasters.some(m => indiv === m.toLowerCase() || indiv.includes(m.toLowerCase()) || indiv.includes("alternate"))
+        );
+        if (isAlt) altHistory.unshift(logItem);
+        
+        applyHistoryLimit(); saveLogs(); updateCountersDisplay(); renderTerrorDatabase(); renderTables(); checkShopWarningNeeds(currentRoundData.type); activeTerrorSet.clear();
+        
+        if (isInRoom) {
+            if (!currentRoundData.isDead) {
+                multiSessionSurvival++;
+                multiSessionStreak++;
+            } else {
+                multiSessionStreak = 0;
+            }
+
+            localPlayerInfo.survivalCount = multiSessionSurvival;
+            localPlayerInfo.sessionStreak = multiSessionStreak;
+
+            if (isHost) {
+                let p = roomPlayers.find(p => p.peerId === peer.id);
+                if(p) { p.info.survivalCount = localPlayerInfo.survivalCount; p.info.sessionStreak = localPlayerInfo.sessionStreak; }
+                broadcastRoomState();
+            } else {
+                sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: localPlayerInfo.sessionStreak });
+            }
+            sendToNetwork({ type: "SYNC_HISTORY", log: logItem });
+        }
+    }
+
+    function connect() {
+        socket = new WebSocket(wsUrl);
+        socket.onopen = () => {
+            elements.curState.textContent = "接続中"; elements.curState.style.color = "var(--success)";
+        };
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                switch(data.type || data.Type) {
+                    case "INSTANCE": 
+                        handleInstanceUpdate(data.Value || data.Id || "未接続"); 
+                        break;
+                    case "ROUND_TYPE":
+                        if (data.Command === 1) { 
+                            currentRoundData.type = data.Name || "Classic"; currentRoundData.active = true; currentRoundData.isDead = false; activeTerrorSet.clear(); 
+                            elements.curRoundType.textContent = currentRoundData.type; elements.curRoundType.className = "status-val searching"; elements.curTerror.textContent = "探索中..."; 
+                            clearShopWarning(); parseGameEvents(null, currentRoundData.type); 
+                            
+                            localPlayerInfo.isAlive = true;
+                            if (isInRoom) {
+                                if (isHost) { let p = roomPlayers.find(p => p.peerId === peer.id); if(p) p.info.isAlive = true; broadcastRoomState(); } 
+                                else { sendToNetwork({ type: "ALIVE_STATE", isAlive: true }); }
+                            }
+                        }
+                        else if (data.Command === 0) { 
+                            if (data.Names && data.Names.length > 0) data.Names.forEach(name => { 
+                                const c = cleanTerrorName(name, currentRoundData.type); 
+                                if(c !== "" && !activeTerrorSet.has(c)) { activeTerrorSet.add(c); }
+                                parseGameEvents(name, currentRoundData.type); 
+                            }); 
+                            finalizeRound(); elements.curRoundType.textContent = "休憩時間"; elements.curRoundType.className = "status-val intermission"; elements.curTerror.textContent = "---"; 
+                        }
+                        checkSpecialEffect();
+                        sendToNetwork({ type: "SYNC_ROUND", roundType: currentRoundData.type });
+                        break;
+                    case "TERRORS":
+                        if (data.Names && data.Names.length > 0) data.Names.forEach(name => { 
+                            const c = cleanTerrorName(name, currentRoundData.type); 
+                            if (currentRoundData.active && c !== "" && !activeTerrorSet.has(c)) { activeTerrorSet.add(c); } 
+                            parseGameEvents(name, currentRoundData.type); 
+                        });
+                        else if (data.DisplayName && data.DisplayName.trim() !== "") { 
+                            const c = cleanTerrorName(data.DisplayName, currentRoundData.type); 
+                            if (currentRoundData.active && c !== "" && !activeTerrorSet.has(c)) { activeTerrorSet.add(c); }
+                            parseGameEvents(data.DisplayName, currentRoundData.type); 
+                        }
+                        updateActiveTerrorDisplay(); checkSpecialEffect();
+                        sendToNetwork({ type: "SYNC_TERRORS", terrors: Array.from(activeTerrorSet) });
+                        break;
+                    case "ALIVE": 
+                        if (data.Value === false && currentRoundData.active) {
+                            currentRoundData.isDead = true;
+                            localPlayerInfo.isAlive = false;
+                            
+                            if (isInRoom && currentRoomType === 'private') {
+                                if (isHost) { let p = roomPlayers.find(p => p.peerId === peer.id); if(p) p.info.isAlive = false; broadcastRoomState(); } 
+                                else { sendToNetwork({ type: "ALIVE_STATE", isAlive: false }); }
+                            }
+                        }
+                        break;
+                    case "ROUND_ACTIVE": 
+                        if (data.Value === false) { 
+                            if (data.Names && data.Names.length > 0) data.Names.forEach(n => parseGameEvents(n, currentRoundData.type)); 
+                            finalizeRound(); elements.curRoundType.textContent = "休憩時間"; elements.curRoundType.className = "status-val intermission"; elements.curTerror.textContent = "---"; checkSpecialEffect(); 
+                        } 
+                        break;
+                }
+            } catch (err) {}
+        };
+        socket.onclose = () => { elements.curState.textContent = "切断中"; elements.curState.style.color = "var(--accent)"; handleInstanceUpdate("未接続"); setTimeout(connect, 4000); };
+        socket.onerror = () => socket.close();
+    }
+    
+    loadLogs(); updateCountersDisplay(); updateLamps(); renderTerrorDatabase(); renderTables(); connect();
+</script>
+</body>
+</html>
