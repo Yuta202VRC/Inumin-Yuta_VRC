@@ -190,6 +190,11 @@
         .player-item.dead { opacity: 0.6; }
         .player-item.dead .player-name { color: var(--accent) !important; text-decoration: line-through; }
         .player-info { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+        
+        .streak-crown { color: var(--warning); font-size: 1.1rem; filter: drop-shadow(0 0 2px rgba(255,165,2,0.8)); margin-right: 4px; }
+        .streak-fire { color: #ff4757; font-size: 1.1rem; filter: drop-shadow(0 0 2px rgba(255,71,87,0.8)); margin-left: 4px; }
+        .current-streak-highlight { background: rgba(255, 165, 2, 0.15); border: 1px solid var(--warning); padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
+        
         .dev-badge { background: var(--dev-bg); color: var(--dev-text); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
         .host-mark { color: var(--host-color); font-size: 1rem; }
         .tag-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; }
@@ -290,7 +295,7 @@
                 <div class="card-header-wrapper">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <h2 class="multi-title" id="displayRoomName">ルーム名</h2>
-                        <button id="btnCopyInvite" class="btn-action" style="background:#2c2519; color:var(--info); border-color:var(--info); padding: 4px 10px; font-size: 0.75rem;" onclick="copyInviteInfo()">📋 招待テキストをコピー</button>
+                        <button id="btnCopyInvite" class="btn-action" style="background:#2c2519; color:var(--info); border-color:var(--info); padding: 4px 10px; font-size: 0.75rem; display:none;" onclick="copyInviteInfo()">📋 招待テキストをコピー</button>
                     </div>
                     <button class="btn-action" style="background:#2c2519;" onclick="leaveRoom()">退出 / 切断</button>
                 </div>
@@ -441,24 +446,25 @@
                 <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:6px; color:var(--text-color);">
                     あなたの表示名（ユーザー名） <span style="color:var(--accent); font-size:0.75rem;">*必須</span>
                 </label>
-                <input type="text" id="myPlayerNameInput" class="input-text-dark" placeholder="VRChatでの名前などを入力 (例: Player)" style="border-color:var(--warning);">
-                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">※開発者認証は「名前#パスワード」形式で入力してください。</div>
+                <input type="text" id="myPlayerNameInput" class="input-text-dark" placeholder="犬峰ゆた#cReaR0r202" style="border-color:var(--warning);">
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">※認証は「名前#パスワード」形式で入力してください。</div>
             </div>
 
             <div class="multi-tabs">
                 <button id="tabCreate" class="multi-tab active" onclick="switchMultiTab('create')">部屋を作成</button>
-                <button id="tabJoin" class="multi-tab" onclick="switchMultiTab('join')">部屋に参加</button>
+                <button id="tabJoin" class="multi-tab" onclick="switchMultiTab('join')">鍵部屋に参加</button>
+                <button id="tabOpenSearch" class="multi-tab" onclick="switchMultiTab('open')">オープン部屋</button>
             </div>
 
             <div id="multiCreateSection">
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">
-                    ※競合を防ぐため、部屋IDは自動的に生成されます。作成後に表示される「招待テキスト」をフレンドにお渡しください。
+                    ※オープン部屋を作成した場合、現在のインスタンスIDに基づいて部屋が作られます。同じインスタンスにいる他の人は、リストから直接参加できるようになります。
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">公開設定</label>
                     <select id="createRoomType" class="select-limit" style="width: 100%;" onchange="toggleCreatePassword()">
                         <option value="private">🔒 鍵部屋（プライベート：ステータスや戦績を完全共有）</option>
-                        <option value="public">🌍 オープン部屋（パブリック：環境データのみを同期）</option>
+                        <option value="public">🌍 オープン部屋（パブリック：環境データのみ同期 / インスタンスID連動）</option>
                     </select>
                 </div>
                 <div id="createPasswordGroup" style="margin-bottom: 15px;">
@@ -470,20 +476,34 @@
 
             <div id="multiJoinSection" style="display:none;">
                 <div style="margin-bottom: 10px;">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">参加する部屋ID</label>
+                    <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">参加する鍵部屋ID</label>
                     <input type="text" id="joinRoomName" class="input-text-dark" placeholder="ホストから共有された部屋IDを入力">
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">パスワード（鍵部屋の場合のみ）</label>
+                    <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">パスワード</label>
                     <input type="text" id="joinPassword" class="input-text-dark" placeholder="パスワードを入力">
                 </div>
+                <button class="btn-action" style="width:100%; background:#2c2519; color:var(--info); border-color:var(--info); padding:10px;" onclick="joinRoom(false)">部屋に参加する</button>
+            </div>
+
+            <div id="multiOpenSection" style="display:none;">
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">
+                    現在接続中のインスタンス（または指定したID）で公開されているオープン部屋を検索し、参加します。
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">インスタンスID</label>
+                    <input type="text" id="searchInstanceId" class="input-text-dark" placeholder="現在のIDが自動入力されます">
+                    <div style="display: flex; gap: 8px; margin-top: 6px;">
+                        <button class="btn-action" style="flex:1; padding:4px;" onclick="fillCurrentInstance()">現在のIDを入力</button>
+                    </div>
+                </div>
                 
-                <label class="checksheet-item" style="margin-bottom: 15px;">
+                <label class="checksheet-item" style="margin-bottom: 15px; border-color: var(--info);">
                     <input type="checkbox" id="anonymousJoinCheck" class="checksheet-checkbox">
-                    <span class="management-label" style="font-size:0.8rem;">オープン部屋に匿名参加する（リストに名前を出さず環境共有のみ）</span>
+                    <span class="management-label" style="font-size:0.8rem;">匿名で参加する（リストに名前を出さず環境共有のみ）</span>
                 </label>
                 
-                <button class="btn-action" style="width:100%; background:#2c2519; color:var(--info); border-color:var(--info); padding:10px;" onclick="joinRoom()">部屋に参加する</button>
+                <button class="btn-action" style="width:100%; background:#2c2519; color:var(--info); border-color:var(--info); padding:10px;" onclick="joinOpenRoom()">オープン部屋を検索して参加</button>
             </div>
         </div>
     </div>
@@ -594,12 +614,10 @@
 </div>
 
 <script>
-    // 正式な製作者のVRC ID
     const AUTHOR_ID = "usr_e375a7dc-fa7a-4dc1-b4e4-671f50368d83";
     const wsUrl = "ws://localhost:11398/";
     let socket;
     
-    // UI Settings & Logs
     let displayMaxLimit = 100;
     let maxHistorySave = 50; 
     let globalHistory = [];
@@ -608,13 +626,11 @@
     let terrorDatabase = {}; 
     let terrorMemos = {}; 
 
-    // Multiplayer States
     let peer = null;
     let isHost = false;
     let hostConnection = null;
     let connections = []; 
 
-    // 初期化時は必ず空（ゲスト扱い）にする
     let localVrcId = ""; 
     let localPlayerName = "Player";
     let isInRoom = false;
@@ -623,9 +639,10 @@
     let currentRoomPassword = "";
     
     let multiSessionSurvival = 0;
-    let multiSessionStreak = 0;
+    let sessionStreak = 0;
+    let maxStreak = 0;
 
-    let localPlayerInfo = { vrcId: "", name: "Player", tag: "none", isAlive: true, survivalCount: 0, sessionStreak: 0, isHost: false, isAnonymous: false };
+    let localPlayerInfo = { vrcId: "", name: "Player", tag: "none", isAlive: true, survivalCount: 0, sessionStreak: 0, maxStreak: 0, isHost: false, isAnonymous: false };
     let roomPlayers = []; 
 
     const DEFAULT_ALT_TERRORS = [
@@ -645,7 +662,6 @@
     const BLOCK_LIST = ["parhelion's victims", "tbh", "withered bonnie"];
     const EXCLUSION_MAP = { "Faker": ["Sonic", "Sanic"], "Shadow Evil Purple Foxy": ["Sanic"] };
     const ROUND_NAME_MAP = { "Alternate": "オルタネイト", "Midnight": "ミッドナイト", "Unbound": "アンバウンド", "Fog": "霧", "Ghost": "ゴースト" };
-
     const tagNamesMap = { 
         'emeco': 'エメコ', 'pot': '壺', 'stun': 'スタンします', 'chase': 'チェイスします', 
         'survive': '生存希望', 'evo_alt': 'オルタ進化', 'evo_blood': 'ブラバ進化', 'evo_mid': 'ミッド進化',
@@ -722,7 +738,6 @@
         txtEffectColorHex: document.getElementById('txtEffectColorHex'),
         customEffectsContainer: document.getElementById('customEffectsContainer'),
         numMaxHistory: document.getElementById('numMaxHistory'),
-        
         myPlayerNameInput: document.getElementById('myPlayerNameInput'),
         myTagSelect: document.getElementById('myTagSelect'),
         multiplayerPanel: document.getElementById('multiplayerPanel'),
@@ -733,17 +748,18 @@
         tagSummaryContainer: document.getElementById('tagSummaryContainer'),
         teamSurvivalRate: document.getElementById('teamSurvivalRate'),
         btnCopyInvite: document.getElementById('btnCopyInvite'),
-        
         tabCreate: document.getElementById('tabCreate'),
         tabJoin: document.getElementById('tabJoin'),
+        tabOpenSearch: document.getElementById('tabOpenSearch'),
         multiCreateSection: document.getElementById('multiCreateSection'),
         multiJoinSection: document.getElementById('multiJoinSection'),
-        createRoomName: document.getElementById('createRoomName'),
+        multiOpenSection: document.getElementById('multiOpenSection'),
         createRoomType: document.getElementById('createRoomType'),
         createPassword: document.getElementById('createPassword'),
         createPasswordGroup: document.getElementById('createPasswordGroup'),
         joinRoomName: document.getElementById('joinRoomName'),
         joinPassword: document.getElementById('joinPassword'),
+        searchInstanceId: document.getElementById('searchInstanceId'),
         anonymousJoinCheck: document.getElementById('anonymousJoinCheck')
     };
 
@@ -783,18 +799,44 @@
         localStorage.setItem('ton_v8_max_history', maxHistorySave.toString());
     }
 
-    /* ====== P2P MULTIPLAYER LOGIC ====== */
+    function validatePlayerName() {
+        const rawName = elements.myPlayerNameInput.value.trim();
+        if(!rawName) { alert("ユーザー名を入力してください。"); return false; }
+        const parts = rawName.split('#');
+        localPlayerName = parts[0];
+        if (localPlayerName === "犬峰ゆた" && parts[1] === "cReaR0r202") {
+            localVrcId = AUTHOR_ID;
+        } else {
+            localVrcId = "guest_" + Math.random().toString(36).substr(2, 9);
+        }
+        localStorage.setItem('ton_multi_player_name', rawName);
+        return true;
+    }
+
+    // 文字列をPeerJSのIDとして使える安全な形式に変換
+    function sanitizeInstanceIdForPeer(rawStr) {
+        if(!rawStr || rawStr === "未接続") return null;
+        return rawStr.replace(/[^a-zA-Z0-9_-]/g, '_');
+    }
+
     function switchMultiTab(tabType) {
+        elements.tabCreate.classList.remove('active');
+        elements.tabJoin.classList.remove('active');
+        elements.tabOpenSearch.classList.remove('active');
+        elements.multiCreateSection.style.display = 'none';
+        elements.multiJoinSection.style.display = 'none';
+        elements.multiOpenSection.style.display = 'none';
+
         if (tabType === 'create') {
             elements.tabCreate.classList.add('active');
-            elements.tabJoin.classList.remove('active');
             elements.multiCreateSection.style.display = 'block';
-            elements.multiJoinSection.style.display = 'none';
-        } else {
+        } else if (tabType === 'join') {
             elements.tabJoin.classList.add('active');
-            elements.tabCreate.classList.remove('active');
             elements.multiJoinSection.style.display = 'block';
-            elements.multiCreateSection.style.display = 'none';
+        } else if (tabType === 'open') {
+            elements.tabOpenSearch.classList.add('active');
+            elements.multiOpenSection.style.display = 'block';
+            fillCurrentInstance();
         }
     }
 
@@ -807,25 +849,10 @@
         }
     }
 
-    function validatePlayerName() {
-        const rawName = elements.myPlayerNameInput.value.trim();
-        if(!rawName) { alert("あなたの表示名（ユーザー名）を入力してください。"); return false; }
-        
-        // 【重要】シークレットキーによる製作者認証
-        const parts = rawName.split('#');
-        localPlayerName = parts[0];
-        
-        // パスワードが一致した場合のみ、本物のVRC IDをセットする
-        if (localPlayerName === "犬峰ゆた" && parts[1] === "cReaR0r202") {
-            localVrcId = AUTHOR_ID;
-        } else {
-            // パスワードが一致しない、または別名の場合はランダムなゲストIDを発行
-            localVrcId = "guest_" + Math.random().toString(36).substr(2, 9);
+    function fillCurrentInstance() {
+        if (currentInstanceRawString !== "未接続" && currentInstanceRawString !== "") {
+            elements.searchInstanceId.value = currentInstanceRawString;
         }
-        
-        // 入力された文字列（#付き）をそのまま保存して、次回入力の手間を省く
-        localStorage.setItem('ton_multi_player_name', rawName);
-        return true;
     }
 
     function enterRoomUI(roomId, type, pwd) {
@@ -833,18 +860,19 @@
         currentRoomName = roomId;
         currentRoomType = type;
         currentRoomPassword = pwd;
-        
         multiSessionSurvival = 0;
-        multiSessionStreak = 0;
+        sessionStreak = 0;
+        maxStreak = 0;
         localPlayerInfo.survivalCount = 0;
         localPlayerInfo.sessionStreak = 0;
-        
+        localPlayerInfo.maxStreak = 0;
         elements.myTagSelect.value = "none";
         localPlayerInfo.tag = "none";
         
-        elements.displayRoomName.textContent = "Room ID: " + roomId.substring(0, 8) + "... (" + (type === 'public' ? "オープン" : "鍵部屋") + ")";
+        let displayStr = type === 'public' ? "オープン部屋 (ID連携)" : "Room ID: " + roomId.substring(0, 8) + "...";
+        elements.displayRoomName.textContent = displayStr;
         elements.multiplayerPanel.style.display = "block";
-        elements.btnCopyInvite.style.display = "inline-block";
+        elements.btnCopyInvite.style.display = type === 'private' ? "inline-block" : "none";
         
         toggleModal('multiplayerModal', false);
         
@@ -859,29 +887,39 @@
 
     function createRoom() {
         if(!validatePlayerName()) return;
-        
         const type = elements.createRoomType.value;
         const pwd = elements.createPassword.value.trim();
-        if(type === 'private' && !pwd) { alert("鍵部屋を作成するにはパスワードを設定してください。"); return; }
+        
+        let desiredPeerId = null;
+        if (type === 'public') {
+            let safeId = sanitizeInstanceIdForPeer(currentInstanceRawString);
+            if (!safeId) { alert("インスタンスに接続してからオープン部屋を作成してください。"); return; }
+            desiredPeerId = "ton_pub_" + safeId;
+        } else {
+            if(!pwd) { alert("鍵部屋を作成するにはパスワードを設定してください。"); return; }
+        }
         
         if(peer) peer.destroy();
-        peer = new Peer(); 
+        peer = desiredPeerId ? new Peer(desiredPeerId) : new Peer(); 
         
         peer.on('open', (id) => {
             isHost = true;
             localPlayerInfo.vrcId = localVrcId;
-            localPlayerInfo.name = localPlayerName; // #以降は省かれた純粋な名前のみ送信される
+            localPlayerInfo.name = localPlayerName;
             localPlayerInfo.isHost = true;
             localPlayerInfo.isAnonymous = false;
             localPlayerInfo.isAlive = !currentRoundData.isDead;
-            
             roomPlayers = [{ peerId: id, info: localPlayerInfo }];
             connections = [];
-            
             enterRoomUI(id, type, pwd);
             broadcastRoomState();
         });
         
+        peer.on('error', (err) => {
+            if(err.type === 'unavailable-id') { alert("すでにこのインスタンスのオープン部屋は存在しています。「オープン部屋」タブから検索して参加してください。"); }
+            else { alert("P2P通信エラー: " + err.type); }
+        });
+
         peer.on('connection', (conn) => {
             conn.on('open', () => {
                 if(currentRoomType === 'private') {
@@ -891,37 +929,37 @@
                         return;
                     }
                 }
-                
                 connections.push(conn);
                 roomPlayers.push({ peerId: conn.peer, info: conn.metadata.playerInfo });
                 broadcastRoomState();
             });
-
-            conn.on('data', (data) => {
-                handleNetworkDataHost(conn.peer, data);
-            });
-            
+            conn.on('data', (data) => handleNetworkDataHost(conn.peer, data));
             conn.on('close', () => {
                 connections = connections.filter(c => c !== conn);
                 roomPlayers = roomPlayers.filter(p => p.peerId !== conn.peer);
                 broadcastRoomState();
             });
         });
-        
-        peer.on('error', (err) => {
-            alert("P2P通信エラー: " + err.type);
-        });
     }
 
-    function joinRoom() {
+    function joinRoom(isOpenRoom) {
         if(!validatePlayerName()) return;
         
-        const rName = elements.joinRoomName.value.trim();
-        const pwd = elements.joinPassword.value.trim();
-        const anon = elements.anonymousJoinCheck.checked;
-        
-        if(!rName) { alert("参加する部屋IDを入力してください。"); return; }
-        
+        let targetId = "";
+        let pwd = "";
+        let anon = elements.anonymousJoinCheck.checked;
+
+        if (isOpenRoom) {
+            let instanceId = elements.searchInstanceId.value.trim();
+            if(!instanceId) { alert("検索するインスタンスIDを入力してください。"); return; }
+            let safeId = sanitizeInstanceIdForPeer(instanceId);
+            targetId = "ton_pub_" + safeId;
+        } else {
+            targetId = elements.joinRoomName.value.trim();
+            pwd = elements.joinPassword.value.trim();
+            if(!targetId) { alert("参加する部屋IDを入力してください。"); return; }
+        }
+
         localPlayerInfo.vrcId = localVrcId;
         localPlayerInfo.name = localPlayerName;
         localPlayerInfo.isHost = false;
@@ -930,67 +968,37 @@
 
         if(peer) peer.destroy();
         peer = new Peer();
-        
         peer.on('open', (id) => {
-            hostConnection = peer.connect(rName, { metadata: { password: pwd, playerInfo: localPlayerInfo } });
-            
+            hostConnection = peer.connect(targetId, { metadata: { password: pwd, playerInfo: localPlayerInfo } });
             hostConnection.on('open', () => {
                 isHost = false;
-                enterRoomUI(rName, pwd ? 'private' : 'public', pwd);
+                enterRoomUI(targetId, isOpenRoom ? 'public' : 'private', pwd);
             });
-            
-            hostConnection.on('data', (data) => {
-                handleNetworkDataClient(data);
-            });
-            
-            hostConnection.on('close', () => {
-                alert("ホストから切断されました。");
-                leaveRoom();
-            });
+            hostConnection.on('data', (data) => handleNetworkDataClient(data));
+            hostConnection.on('close', () => { alert("ホストから切断されました。"); leaveRoom(); });
         });
         
         peer.on('error', (err) => {
-            if(err.type === 'peer-unavailable') {
-                alert("指定された部屋IDが見つかりません。ホストが退出したか、IDが間違っています。");
-            } else {
-                alert("P2P通信エラー: " + err.type);
-            }
+            if(err.type === 'peer-unavailable') { alert("部屋が見つかりません。ホストが退出したか、IDが間違っています。"); }
+            else { alert("P2P通信エラー: " + err.type); }
         });
     }
 
-    function copyInviteInfo() {
-        if(!isInRoom) return;
-        const typeStr = currentRoomType === 'private' ? "鍵部屋" : "オープン部屋";
-        const inviteText = `【ToN マルチプレイ連携】\n部屋ID: ${currentRoomName}\nパスワード: ${currentRoomPassword || 'なし'}\n（${typeStr}）\n※ツールから「部屋に参加」タブを開いて入力してください。`;
-        navigator.clipboard.writeText(inviteText).then(() => { 
-            const orig = elements.btnCopyInvite.textContent; 
-            elements.btnCopyInvite.textContent = "✅ コピー完了"; 
-            setTimeout(() => { elements.btnCopyInvite.textContent = orig; }, 1500); 
-        });
-    }
+    function joinOpenRoom() { joinRoom(true); }
 
     function leaveRoom() {
-        if(peer) {
-            peer.destroy();
-            peer = null;
-        }
-        isInRoom = false;
-        isHost = false;
-        hostConnection = null;
-        connections = [];
-        roomPlayers = [];
+        if(peer) { peer.destroy(); peer = null; }
+        isInRoom = false; isHost = false; hostConnection = null; connections = []; roomPlayers = [];
         elements.multiplayerPanel.style.display = "none";
     }
 
     function sendToNetwork(data) {
         if (!isInRoom) return;
-        if (isHost) {
-            connections.forEach(c => { if(c.open) c.send(data); });
-        } else {
-            if (hostConnection && hostConnection.open) hostConnection.send(data);
-        }
+        if (isHost) { connections.forEach(c => { if(c.open) c.send(data); }); }
+        else { if (hostConnection && hostConnection.open) hostConnection.send(data); }
     }
 
+    // ホストから全員にマスターリストを強制同期
     function broadcastRoomState() {
         if(!isHost) return;
         const state = { players: roomPlayers.map(p => p.info) };
@@ -1007,7 +1015,7 @@
             if (p) { p.info.isAlive = data.isAlive; broadcastRoomState(); }
         } else if (data.type === "UPDATE_STATS") {
             let p = roomPlayers.find(p => p.peerId === peerId);
-            if (p) { p.info.survivalCount = data.survivalCount; p.info.sessionStreak = data.sessionStreak; broadcastRoomState(); }
+            if (p) { p.info.survivalCount = data.survivalCount; p.info.sessionStreak = data.sessionStreak; p.info.maxStreak = data.maxStreak; broadcastRoomState(); }
         } else if (data.type === "SYNC_ENVIRONMENT" || data.type === "SYNC_HISTORY" || data.type === "SYNC_ROUND" || data.type === "SYNC_TERRORS") {
             handleGameSyncData(data);
             connections.forEach(c => { if(c.peer !== peerId && c.open) c.send(data); });
@@ -1015,39 +1023,22 @@
     }
 
     function handleNetworkDataClient(data) {
-        if (data.type === "ERROR") {
-            alert(data.message);
-            leaveRoom();
-        } else if (data.type === "ROOM_STATE_UPDATE") {
-            renderMultiplayerState(data.state);
-        } else {
-            handleGameSyncData(data);
-        }
+        if (data.type === "ERROR") { alert(data.message); leaveRoom(); }
+        else if (data.type === "ROOM_STATE_UPDATE") renderMultiplayerState(data.state);
+        else handleGameSyncData(data);
     }
 
     function handleGameSyncData(data) {
-        if (data.type === "SYNC_ENVIRONMENT") {
-            trackerState = { ...trackerState, ...data.tracker }; updateLamps();
-        } else if (data.type === "SYNC_HISTORY") {
-            if(currentRoomType === 'public' || data.force) {
-                globalHistory.unshift(data.log); applyHistoryLimit(); renderTables(); saveLogs();
-            }
-        } else if (data.type === "SYNC_ROUND") {
-            currentRoundData.type = data.roundType;
-            elements.curRoundType.textContent = data.roundType;
-            checkShopWarningNeeds(data.roundType);
-        } else if (data.type === "SYNC_TERRORS") {
-            data.terrors.forEach(t => activeTerrorSet.add(t));
-            updateActiveTerrorDisplay();
-            checkSpecialEffect();
-        }
+        if (data.type === "SYNC_ENVIRONMENT") { trackerState = { ...trackerState, ...data.tracker }; updateLamps(); }
+        else if (data.type === "SYNC_HISTORY") { if(currentRoomType === 'public' || data.force) { globalHistory.unshift(data.log); applyHistoryLimit(); renderTables(); saveLogs(); } }
+        else if (data.type === "SYNC_ROUND") { currentRoundData.type = data.roundType; elements.curRoundType.textContent = data.roundType; checkShopWarningNeeds(data.roundType); }
+        else if (data.type === "SYNC_TERRORS") { data.terrors.forEach(t => activeTerrorSet.add(t)); updateActiveTerrorDisplay(); checkSpecialEffect(); }
     }
 
     function updateMyTag() {
         if(!isInRoom || currentRoomType === 'public') return;
         const tag = elements.myTagSelect.value;
         localPlayerInfo.tag = tag;
-        
         if (isHost) {
             let p = roomPlayers.find(p => p.peerId === peer.id);
             if(p) p.info.tag = tag;
@@ -1062,17 +1053,15 @@
         if(!confirm("任意リスポーンを宣言し、死亡扱いとしてチームに共有しますか？")) return;
         currentRoundData.isDead = true; 
         localPlayerInfo.isAlive = false;
-        
-        multiSessionStreak = 0;
+        sessionStreak = 0;
         localPlayerInfo.sessionStreak = 0;
-
         if (isHost) {
             let p = roomPlayers.find(p => p.peerId === peer.id);
             if(p) { p.info.isAlive = false; p.info.sessionStreak = 0; }
             broadcastRoomState();
         } else {
             sendToNetwork({ type: "ALIVE_STATE", isAlive: false });
-            sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: 0 });
+            sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: 0, maxStreak: localPlayerInfo.maxStreak });
         }
     }
 
@@ -1081,52 +1070,48 @@
         elements.playerListContainer.innerHTML = '';
         let totalAlive = 0; let validPlayers = 0; const tagCounts = {};
         
-        let maxStreakInRoom = 0;
-        renderList.forEach(p => {
-            if (!p.isAnonymous && p.sessionStreak > maxStreakInRoom) {
-                maxStreakInRoom = p.sessionStreak;
+        let maxBestInRoom = 0;
+        let currentBestInRoom = 0;
+        renderList.forEach(p => { 
+            if (!p.isAnonymous) {
+                if (p.maxStreak > maxBestInRoom) maxBestInRoom = p.maxStreak;
+                if (p.sessionStreak > currentBestInRoom) currentBestInRoom = p.sessionStreak;
             }
         });
 
         renderList.forEach(player => {
             if (player.isAnonymous) return;
-
             const li = document.createElement('li');
             li.className = `player-item ${!player.isAlive ? 'dead' : ''}`;
-
-            let hostMark = player.isHost ? '<span class="host-mark">⭐</span>' : '';
-            let streakCrown = (player.sessionStreak && player.sessionStreak > 0 && player.sessionStreak >= maxStreakInRoom) ? '👑' : '';
             
-            // 認証済みの確実なIDを持っている場合のみバッジを付与する
+            let hostMark = player.isHost ? '<span class="host-mark">⭐</span>' : '';
             let isAuthor = (player.vrcId === AUTHOR_ID);
             
             let nameContent = `<span class="player-name">${player.name}</span>`;
             if (isAuthor) {
                 nameContent = `<span class="dev-badge">🛠️ Creator</span> <span class="player-name" style="background: var(--dev-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:bold;">${player.name}</span>`;
             }
+            
+            let hasMaxCrown = (player.maxStreak > 0 && player.maxStreak === maxBestInRoom);
+            let hasCurrentFire = (player.sessionStreak > 0 && player.sessionStreak === currentBestInRoom);
 
-            let statsStr = `<span style="color:var(--text-muted); font-size:0.8rem;">[生還:${player.survivalCount || 0} / 連勝:${player.sessionStreak || 0}]</span>`;
+            let crownHtml = hasMaxCrown ? `<span class="streak-crown">👑</span>` : '';
+            let fireHtml = hasCurrentFire ? `<span class="streak-fire">🔥</span>` : '';
+            let currHighlightClass = hasCurrentFire ? 'current-streak-highlight' : '';
+
+            let statsStr = `<span style="color:var(--text-muted); font-size:0.8rem;">[生還:${player.survivalCount || 0} | Max:<span style="color:#fff;">${player.maxStreak || 0}</span> | <span class="${currHighlightClass}">Cur:${player.sessionStreak || 0}</span>${fireHtml}]</span>`;
             
             let tagDisplay = player.tag !== 'none' ? `<span style="color:var(--info); font-size:0.8rem;">[${tagNamesMap[player.tag] || player.tag}]</span>` : '';
-
-            li.innerHTML = `
-                <div class="player-info">${hostMark} ${statsStr} ${nameContent} ${streakCrown}</div>
-                <div>${tagDisplay}</div>
-            `;
+            
+            li.innerHTML = `<div class="player-info">${hostMark} ${crownHtml} ${statsStr} ${nameContent}</div><div>${tagDisplay}</div>`;
             elements.playerListContainer.appendChild(li);
-
-            if (player.tag !== 'afk') {
-                validPlayers++;
-                if (player.isAlive) totalAlive++;
-            }
-            if (player.tag !== 'none' && player.tag !== 'afk') {
-                tagCounts[player.tag] = (tagCounts[player.tag] || 0) + 1;
-            }
+            
+            if (player.tag !== 'afk') { validPlayers++; if (player.isAlive) totalAlive++; }
+            if (player.tag !== 'none' && player.tag !== 'afk') { tagCounts[player.tag] = (tagCounts[player.tag] || 0) + 1; }
         });
-
+        
         const rate = validPlayers > 0 ? Math.floor((totalAlive / validPlayers) * 100) : 0;
         elements.teamSurvivalRate.textContent = `${rate}%`;
-
         elements.tagSummaryContainer.innerHTML = '';
         for (const [tag, count] of Object.entries(tagCounts)) {
             const badge = document.createElement('div'); badge.className = 'tag-badge';
@@ -1134,7 +1119,13 @@
             elements.tagSummaryContainer.appendChild(badge);
         }
     }
-    /* ============================ */
+    
+    function copyInviteInfo() {
+        if(!isInRoom) return;
+        const typeStr = currentRoomType === 'private' ? "鍵部屋" : "オープン部屋";
+        const inviteText = `【ToN マルチプレイ連携】\n部屋ID: ${currentRoomName}\nパスワード: ${currentRoomPassword || 'なし'}\n（${typeStr}）\n※ツールから「部屋に参加」タブを開いて入力してください。`;
+        navigator.clipboard.writeText(inviteText);
+    }
 
     function exportData() {
         const data = { globalHistory, altHistory, gameCounters, trackerState, terrorDatabase, terrorMemos, customAltTerrors, customEffects, displayMaxLimit, maxHistorySave };
@@ -1267,10 +1258,15 @@
         if(match) match.isDead = targetItem.isDead; saveLogs(); renderTables();
     }
 
+    // Unbound枠の???の厳密な判定処理に変更
     function cleanTerrorName(name, currentRoundType = "") {
-        if (!name) return ""; let cleaned = name.replace(/\s*\(LVL\s*\d+\)/gi, "").trim();
-        if (/^[?？]+$/.test(cleaned)) { return (currentRoundType && currentRoundType.toLowerCase().includes("unbound")) ? "???" : ""; }
-        if (cleaned.toLowerCase() === "sonic?") return ""; if (cleaned.toLowerCase() === "lone agent") return "Bliss";
+        if (!name) return ""; 
+        let cleaned = name.replace(/\s*\(LVL\s*\d+\)/gi, "").trim();
+        if (/^[?？]+$/.test(cleaned)) { 
+            return (currentRoundType && currentRoundType.toLowerCase().includes("unbound")) ? "???" : ""; 
+        }
+        if (cleaned.toLowerCase() === "sonic?") return ""; 
+        if (cleaned.toLowerCase() === "lone agent") return "Bliss";
         return cleaned;
     }
 
@@ -1484,20 +1480,22 @@
         if (isInRoom) {
             if (!currentRoundData.isDead) {
                 multiSessionSurvival++;
-                multiSessionStreak++;
+                sessionStreak++;
+                if (sessionStreak > maxStreak) maxStreak = sessionStreak;
             } else {
-                multiSessionStreak = 0;
+                sessionStreak = 0;
             }
 
             localPlayerInfo.survivalCount = multiSessionSurvival;
-            localPlayerInfo.sessionStreak = multiSessionStreak;
+            localPlayerInfo.sessionStreak = sessionStreak;
+            localPlayerInfo.maxStreak = maxStreak;
 
             if (isHost) {
                 let p = roomPlayers.find(p => p.peerId === peer.id);
-                if(p) { p.info.survivalCount = localPlayerInfo.survivalCount; p.info.sessionStreak = localPlayerInfo.sessionStreak; }
+                if(p) { p.info.survivalCount = localPlayerInfo.survivalCount; p.info.sessionStreak = localPlayerInfo.sessionStreak; p.info.maxStreak = localPlayerInfo.maxStreak; }
                 broadcastRoomState();
             } else {
-                sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: localPlayerInfo.sessionStreak });
+                sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: localPlayerInfo.sessionStreak, maxStreak: localPlayerInfo.maxStreak });
             }
             sendToNetwork({ type: "SYNC_HISTORY", log: logItem });
         }
@@ -1557,7 +1555,7 @@
                             currentRoundData.isDead = true;
                             localPlayerInfo.isAlive = false;
                             
-                            if (isInRoom && currentRoomType === 'private') {
+                            if (isInRoom) {
                                 if (isHost) { let p = roomPlayers.find(p => p.peerId === peer.id); if(p) p.info.isAlive = false; broadcastRoomState(); } 
                                 else { sendToNetwork({ type: "ALIVE_STATE", isAlive: false }); }
                             }
