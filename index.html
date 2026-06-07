@@ -813,7 +813,6 @@
         return true;
     }
 
-    // 文字列をPeerJSのIDとして使える安全な形式に変換
     function sanitizeInstanceIdForPeer(rawStr) {
         if(!rawStr || rawStr === "未接続") return null;
         return rawStr.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -998,7 +997,6 @@
         else { if (hostConnection && hostConnection.open) hostConnection.send(data); }
     }
 
-    // ホストから全員にマスターリストを強制同期
     function broadcastRoomState() {
         if(!isHost) return;
         const state = { players: roomPlayers.map(p => p.info) };
@@ -1258,7 +1256,6 @@
         if(match) match.isDead = targetItem.isDead; saveLogs(); renderTables();
     }
 
-    // Unbound枠の???の厳密な判定処理に変更
     function cleanTerrorName(name, currentRoundType = "") {
         if (!name) return ""; 
         let cleaned = name.replace(/\s*\(LVL\s*\d+\)/gi, "").trim();
@@ -1372,6 +1369,21 @@
             row.innerHTML = `<td><strong class="clickable-terror" onclick="openTerrorMemo('${item.name.replace(/'/g, "\\'")}')">${item.name}</strong></td><td style="text-align: center;">${item.met}</td><td style="text-align: center; font-weight: bold; color: ${rate >= 50 ? 'var(--success)' : 'var(--accent)'};">${rate}%</td>`;
             body.appendChild(row);
         });
+    }
+
+    // 【重要修正】テラー検出時のフィルター機能
+    function handleTerrorDetection(rawName) {
+        const c = cleanTerrorName(rawName, currentRoundData.type);
+        if (currentRoundData.active && c !== "") {
+            activeTerrorSet.add(c);
+            
+            // "???" 以外の本物のテラーが1つでも判明した場合、"???" をリストから自動削除する
+            let hasRealTerror = Array.from(activeTerrorSet).some(t => t !== "???");
+            if (hasRealTerror) {
+                activeTerrorSet.delete("???");
+            }
+        }
+        parseGameEvents(rawName, currentRoundData.type);
     }
 
     function parseGameEvents(name, type) {
@@ -1527,9 +1539,7 @@
                         }
                         else if (data.Command === 0) { 
                             if (data.Names && data.Names.length > 0) data.Names.forEach(name => { 
-                                const c = cleanTerrorName(name, currentRoundData.type); 
-                                if(c !== "" && !activeTerrorSet.has(c)) { activeTerrorSet.add(c); }
-                                parseGameEvents(name, currentRoundData.type); 
+                                handleTerrorDetection(name); 
                             }); 
                             finalizeRound(); elements.curRoundType.textContent = "休憩時間"; elements.curRoundType.className = "status-val intermission"; elements.curTerror.textContent = "---"; 
                         }
@@ -1537,15 +1547,10 @@
                         sendToNetwork({ type: "SYNC_ROUND", roundType: currentRoundData.type });
                         break;
                     case "TERRORS":
-                        if (data.Names && data.Names.length > 0) data.Names.forEach(name => { 
-                            const c = cleanTerrorName(name, currentRoundData.type); 
-                            if (currentRoundData.active && c !== "" && !activeTerrorSet.has(c)) { activeTerrorSet.add(c); } 
-                            parseGameEvents(name, currentRoundData.type); 
-                        });
-                        else if (data.DisplayName && data.DisplayName.trim() !== "") { 
-                            const c = cleanTerrorName(data.DisplayName, currentRoundData.type); 
-                            if (currentRoundData.active && c !== "" && !activeTerrorSet.has(c)) { activeTerrorSet.add(c); }
-                            parseGameEvents(data.DisplayName, currentRoundData.type); 
+                        if (data.Names && data.Names.length > 0) {
+                            data.Names.forEach(name => handleTerrorDetection(name));
+                        } else if (data.DisplayName && data.DisplayName.trim() !== "") { 
+                            handleTerrorDetection(data.DisplayName);
                         }
                         updateActiveTerrorDisplay(); checkSpecialEffect();
                         sendToNetwork({ type: "SYNC_TERRORS", terrors: Array.from(activeTerrorSet) });
