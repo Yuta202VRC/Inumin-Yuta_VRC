@@ -434,6 +434,21 @@
     </div>
 </div>
 
+<div id="reconnectModal" class="modal-overlay">
+    <div class="modal-window">
+        <div class="modal-header" style="border-bottom:none; justify-content:center; padding-bottom:0;">
+            <div class="modal-title" style="color: var(--info); font-size: 1.3rem;">🔄 再接続の確認</div>
+        </div>
+        <div style="padding: 20px 0; font-size: 0.95rem; line-height: 1.5; color: var(--text-color);">
+            <p id="reconnectMsg" style="margin: 0;"></p>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button class="btn-action btn-primary" style="flex:1;" onclick="confirmReconnect(true)">はい（再接続する）</button>
+            <button class="btn-action" style="flex:1;" onclick="confirmReconnect(false)">いいえ（破棄する）</button>
+        </div>
+    </div>
+</div>
+
 <div id="multiplayerModal" class="modal-overlay" onclick="toggleModal('multiplayerModal', false)">
     <div class="modal-window" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -799,6 +814,65 @@
         localStorage.setItem('ton_v8_max_history', maxHistorySave.toString());
     }
 
+    // --- セッション再接続機能 ---
+    function saveSession() {
+        if (!isInRoom) return;
+        localStorage.setItem('ton_session', JSON.stringify({
+            roomId: currentRoomName,
+            type: currentRoomType,
+            pwd: currentRoomPassword,
+            isHost: isHost,
+            anon: localPlayerInfo.isAnonymous
+        }));
+    }
+
+    function clearSession() {
+        localStorage.removeItem('ton_session');
+    }
+
+    window.onload = () => {
+        const savedSession = localStorage.getItem('ton_session');
+        if (savedSession) {
+            try {
+                const data = JSON.parse(savedSession);
+                let roomDesc = data.type === 'public' ? "オープン部屋" : `鍵部屋 (ID: ${data.roomId.substring(0,8)}...)`;
+                let hostDesc = data.isHost ? "【ホスト】として作成" : "【ゲスト】として参加";
+                document.getElementById('reconnectMsg').innerHTML = `前回のセッション情報が残っています。<br><br>対象: ${roomDesc}<br>状態: ${hostDesc}<br><br>自動的に復帰しますか？`;
+                toggleModal('reconnectModal', true);
+            } catch(e) { clearSession(); }
+        }
+    };
+
+    function confirmReconnect(yes) {
+        toggleModal('reconnectModal', false);
+        if (yes) {
+            const data = JSON.parse(localStorage.getItem('ton_session'));
+            if (!validatePlayerName()) return;
+            
+            elements.anonymousJoinCheck.checked = data.anon || false;
+            
+            if (data.isHost) {
+                elements.createRoomType.value = data.type;
+                elements.createPassword.value = data.pwd || "";
+                createRoom(true, data.roomId);
+            } else {
+                if (data.type === 'public') {
+                    // オープン部屋への再接続
+                    let searchId = data.roomId.replace("ton_pub_", "");
+                    elements.searchInstanceId.value = searchId;
+                    joinOpenRoom(true, data.roomId);
+                } else {
+                    // プライベートへの再接続
+                    elements.joinRoomName.value = data.roomId;
+                    elements.joinPassword.value = data.pwd || "";
+                    joinRoom(false, data.roomId, data.pwd);
+                }
+            }
+        } else {
+            clearSession();
+        }
+    }
+
     function validatePlayerName() {
         const rawName = elements.myPlayerNameInput.value.trim();
         if(!rawName) { alert("ユーザー名を入力してください。"); return false; }
@@ -882,20 +956,24 @@
             elements.multiPrivateContent.style.display = "block";
             elements.multiPublicContent.style.display = "none";
         }
+        saveSession();
     }
 
-    function createRoom() {
-        if(!validatePlayerName()) return;
+    function createRoom(isRecovery = false, forceId = null) {
+        if(!isRecovery && !validatePlayerName()) return;
+        
         const type = elements.createRoomType.value;
         const pwd = elements.createPassword.value.trim();
         
-        let desiredPeerId = null;
-        if (type === 'public') {
-            let safeId = sanitizeInstanceIdForPeer(currentInstanceRawString);
-            if (!safeId) { alert("インスタンスに接続してからオープン部屋を作成してください。"); return; }
-            desiredPeerId = "ton_pub_" + safeId;
-        } else {
-            if(!pwd) { alert("鍵部屋を作成するにはパスワードを設定してください。"); return; }
+        let desiredPeerId = forceId;
+        if (!isRecovery) {
+            if (type === 'public') {
+                let safeId = sanitizeInstanceIdForPeer(currentInstanceRawString);
+                if (!safeId) { alert("インスタンスに接続してからオープン部屋を作成してください。"); return; }
+                desiredPeerId = "ton_pub_" + safeId;
+            } else {
+                if(!pwd) { alert("鍵部屋を作成するにはパスワードを設定してください。"); return; }
+            }
         }
         
         if(peer) peer.destroy();
@@ -915,8 +993,8 @@
         });
         
         peer.on('error', (err) => {
-            if(err.type === 'unavailable-id') { alert("すでにこのインスタンスのオープン部屋は存在しています。「オープン部屋」タブから検索して参加してください。"); }
-            else { alert("P2P通信エラー: " + err.type); }
+            if(err.type === 'unavailable-id') { alert("すでにこのインスタンスのオープン部屋は存在しています。「オープン部屋」タブから検索して参加してください。"); clearSession(); }
+            else { alert("P2P通信エラー: " + err.type); clearSession(); }
         });
 
         peer.on('connection', (conn) => {
@@ -941,22 +1019,24 @@
         });
     }
 
-    function joinRoom(isOpenRoom) {
-        if(!validatePlayerName()) return;
+    function joinRoom(isOpenRoom, forceId = null, forcePwd = null) {
+        if(!forceId && !validatePlayerName()) return;
         
-        let targetId = "";
-        let pwd = "";
+        let targetId = forceId;
+        let pwd = forcePwd !== null ? forcePwd : "";
         let anon = elements.anonymousJoinCheck.checked;
 
-        if (isOpenRoom) {
-            let instanceId = elements.searchInstanceId.value.trim();
-            if(!instanceId) { alert("検索するインスタンスIDを入力してください。"); return; }
-            let safeId = sanitizeInstanceIdForPeer(instanceId);
-            targetId = "ton_pub_" + safeId;
-        } else {
-            targetId = elements.joinRoomName.value.trim();
-            pwd = elements.joinPassword.value.trim();
-            if(!targetId) { alert("参加する部屋IDを入力してください。"); return; }
+        if (!targetId) {
+            if (isOpenRoom) {
+                let instanceId = elements.searchInstanceId.value.trim();
+                if(!instanceId) { alert("検索するインスタンスIDを入力してください。"); return; }
+                let safeId = sanitizeInstanceIdForPeer(instanceId);
+                targetId = "ton_pub_" + safeId;
+            } else {
+                targetId = elements.joinRoomName.value.trim();
+                pwd = elements.joinPassword.value.trim();
+                if(!targetId) { alert("参加する部屋IDを入力してください。"); return; }
+            }
         }
 
         localPlayerInfo.vrcId = localVrcId;
@@ -978,17 +1058,18 @@
         });
         
         peer.on('error', (err) => {
-            if(err.type === 'peer-unavailable') { alert("部屋が見つかりません。ホストが退出したか、IDが間違っています。"); }
-            else { alert("P2P通信エラー: " + err.type); }
+            if(err.type === 'peer-unavailable') { alert("部屋が見つかりません。ホストが退出したか、IDが間違っています。"); clearSession(); }
+            else { alert("P2P通信エラー: " + err.type); clearSession(); }
         });
     }
 
-    function joinOpenRoom() { joinRoom(true); }
+    function joinOpenRoom(isRecovery = false, forceId = null) { joinRoom(true, forceId, null); }
 
     function leaveRoom() {
         if(peer) { peer.destroy(); peer = null; }
         isInRoom = false; isHost = false; hostConnection = null; connections = []; roomPlayers = [];
         elements.multiplayerPanel.style.display = "none";
+        clearSession();
     }
 
     function sendToNetwork(data) {
@@ -997,9 +1078,11 @@
         else { if (hostConnection && hostConnection.open) hostConnection.send(data); }
     }
 
+    // --- 同期の完全化（マスター強制同期） ---
     function broadcastRoomState() {
         if(!isHost) return;
         const state = { players: roomPlayers.map(p => p.info) };
+        // ホストが保持する全データをクライアントへ上書き送信する
         sendToNetwork({ type: "ROOM_STATE_UPDATE", state: state });
         renderMultiplayerState(state); 
     }
@@ -1371,14 +1454,14 @@
         });
     }
 
-    // 【重要修正】テラー検出時のフィルター機能
+    // --- 【重要】テラー検出・フィルタリング処理 ---
     function handleTerrorDetection(rawName) {
         const c = cleanTerrorName(rawName, currentRoundData.type);
         if (currentRoundData.active && c !== "") {
             activeTerrorSet.add(c);
             
             // "???" 以外の本物のテラーが1つでも判明した場合、"???" をリストから自動削除する
-            let hasRealTerror = Array.from(activeTerrorSet).some(t => t !== "???");
+            let hasRealTerror = Array.from(activeTerrorSet).some(t => !/^[?？]+$/.test(t));
             if (hasRealTerror) {
                 activeTerrorSet.delete("???");
             }
