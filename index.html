@@ -341,12 +341,57 @@
                     プレイヤー情報や戦績は共有されず、<br>インスタンスの環境データ（テラー履歴・特殊Moon等）のみ送受信しています。
                 </div>
             </div>
-        </div>
+
+            <div class="card" id="roomSharedDataCard" style="display: none; border-color: var(--info);">
+                <div class="card-header-wrapper" style="margin-bottom: 8px;">
+                    <h2 style="border-left-color: var(--info);">🌐 ルーム共有環境・履歴</h2>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; background: rgba(0, 210, 211, 0.05); padding: 8px; border-radius: 4px; border: 1px solid rgba(0, 210, 211, 0.2);">
+                    ※このパネルはホストから共有されたデータのみを表示しています。右側のあなたのローカル記録（DB）には混ざりません。
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 4px; border: 1px solid var(--card-border);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">特殊Moon</div>
+                        <div class="lamp-row" style="gap: 8px;">
+                            <div class="lamp-container"><span id="rLampMystic" class="lamp mystic"></span></div>
+                            <div class="lamp-container"><span id="rLampTwilight" class="lamp twilight"></span></div>
+                            <div class="lamp-container"><span id="rLampBlood" class="lamp blood"></span></div>
+                            <div class="lamp-container"><span id="rLampSolstice" class="lamp solstice"></span></div>
+                            <div class="lamp-container"><span id="rLampColdNight" class="lamp cold"></span></div>
+                        </div>
+                    </div>
+                    <div style="flex: 1; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 4px; border: 1px solid var(--card-border);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">鳥 出現状況</div>
+                        <div class="lamp-row" style="gap: 8px;">
+                            <div class="lamp-container"><span id="rLampBigBird" class="lamp bird"></span><span>大</span></div>
+                            <div class="lamp-container"><span id="rLampPunishingBird" class="lamp bird"></span><span>罰</span></div>
+                            <div class="lamp-container"><span id="rLampJudgementBird" class="lamp bird"></span><span>審</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper" style="max-height: 200px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">時間</th>
+                                <th style="width: 30%;">ラウンド</th>
+                                <th style="width: 50%;">出現テラー</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roomGlobalHistoryBody">
+                            <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">共有データ待機中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
 
         <div class="grid-col col-right">
             <div class="card">
                 <div class="card-header-wrapper">
-                    <h2>特殊解放 ＆ 特定テラー検知</h2>
+                    <h2>特殊解放 ＆ 特定テラー検知 <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(ローカル)</span></h2>
                     <button class="btn-section-reset" onclick="resetSection('lamps')">🔁 リセット</button>
                 </div>
                 <div class="tracker-grid">
@@ -372,7 +417,7 @@
 
                 <div style="margin-top: 15px;">
                     <div class="card-header-wrapper" style="margin-bottom: 8px;">
-                        <h2 style="border-left-color: var(--warning);">テラー別 遭遇・戦績データ</h2>
+                        <h2 style="border-left-color: var(--warning);">テラー別 遭遇・戦績データ <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(ローカル)</span></h2>
                         <input type="text" id="terrorSearchInput" placeholder="検索..." oninput="renderTerrorDatabase()" style="background:#0b0b0e; border:1px solid #3d3d54; color:#fff; padding:4px 8px; border-radius:4px; font-size:0.8rem; width:100px; outline:none;">
                     </div>
                     <div class="table-wrapper" style="max-height: 180px;">
@@ -394,7 +439,7 @@
             
             <div class="card" style="border-color: #3b2d54;">
                 <div class="card-header-wrapper">
-                    <h2 class="alt-title">オルタ・特殊ラウンド限定記録</h2>
+                    <h2 class="alt-title">オルタ・特殊ラウンド限定記録 <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(ローカル)</span></h2>
                     <button class="btn-section-reset" onclick="resetSection('alt')">🔁 リセット</button>
                 </div>
                 <div class="table-wrapper">
@@ -416,7 +461,7 @@
 
     <div class="card">
         <div class="card-header-wrapper">
-            <h2>全ラウンド履歴</h2>
+            <h2>全ラウンド履歴 <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(ローカル)</span></h2>
             <button class="btn-section-reset" onclick="resetSection('global')">🔁 リセット</button>
         </div>
         <div class="table-wrapper">
@@ -641,6 +686,10 @@
     let terrorDatabase = {}; 
     let terrorMemos = {}; 
 
+    // マルチプレイ共有用（ローカルに保存されない別枠データ）
+    let roomGlobalHistory = [];
+    let roomTrackerState = { mystic: false, twilight: false, blood: false, solstice: false, coldNight: false, bigBird: false, punishingBird: false, judgementBird: false };
+
     let peer = null;
     let isHost = false;
     let hostConnection = null;
@@ -775,7 +824,9 @@
         joinRoomName: document.getElementById('joinRoomName'),
         joinPassword: document.getElementById('joinPassword'),
         searchInstanceId: document.getElementById('searchInstanceId'),
-        anonymousJoinCheck: document.getElementById('anonymousJoinCheck')
+        anonymousJoinCheck: document.getElementById('anonymousJoinCheck'),
+        roomSharedDataCard: document.getElementById('roomSharedDataCard'),
+        roomGlobalHistoryBody: document.getElementById('roomGlobalHistoryBody')
     };
 
     elements.colEffectColor.addEventListener('input', function() { elements.txtEffectColorHex.value = this.value; });
@@ -888,7 +939,6 @@
     // --- IDサニタイズ処理の修正（不正文字を排除） ---
     function sanitizeInstanceIdForPeer(rawStr) {
         if(!rawStr || rawStr === "未接続") return null;
-        // 英数字とハイフンのみを許容するように変換
         let safe = rawStr.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
         return safe;
     }
@@ -948,6 +998,13 @@
         elements.multiplayerPanel.style.display = "block";
         elements.btnCopyInvite.style.display = type === 'private' ? "inline-block" : "none";
         
+        // 別枠表示ロジック（ゲストのみ表示）
+        if (!isHost) {
+            elements.roomSharedDataCard.style.display = "block";
+        } else {
+            elements.roomSharedDataCard.style.display = "none";
+        }
+
         toggleModal('multiplayerModal', false);
         
         if(type === 'public') {
@@ -1015,10 +1072,7 @@
                 conn.send({
                     type: "SYNC_FULL_STATE",
                     globalHistory: globalHistory,
-                    altHistory: altHistory,
-                    trackerState: trackerState,
-                    roundData: currentRoundData,
-                    activeTerrors: Array.from(activeTerrorSet)
+                    trackerState: trackerState
                 });
             });
             conn.on('data', (data) => handleNetworkDataHost(conn.peer, data));
@@ -1080,6 +1134,11 @@
         if(peer) { peer.destroy(); peer = null; }
         isInRoom = false; isHost = false; hostConnection = null; connections = []; roomPlayers = [];
         elements.multiplayerPanel.style.display = "none";
+        elements.roomSharedDataCard.style.display = "none";
+        
+        roomGlobalHistory = [];
+        roomTrackerState = { mystic: false, twilight: false, blood: false, solstice: false, coldNight: false, bigBird: false, punishingBird: false, judgementBird: false };
+        updateRoomSharedUI();
         clearSession();
     }
 
@@ -1107,36 +1166,60 @@
             let p = roomPlayers.find(p => p.peerId === peerId);
             if (p) { p.info.survivalCount = data.survivalCount; p.info.sessionStreak = data.sessionStreak; p.info.maxStreak = data.maxStreak; broadcastRoomState(); }
         } else if (data.type === "SYNC_ENVIRONMENT" || data.type === "SYNC_HISTORY" || data.type === "SYNC_ROUND" || data.type === "SYNC_TERRORS") {
-            handleGameSyncData(data);
-            connections.forEach(c => { if(c.peer !== peerId && c.open) c.send(data); });
+            // ホストは受け取っても何もしない（自分が発信元であるべき）
         }
     }
 
     function handleNetworkDataClient(data) {
         if (data.type === "ERROR") { alert(data.message); leaveRoom(); }
         else if (data.type === "ROOM_STATE_UPDATE") renderMultiplayerState(data.state);
-        // --- フル同期データの受信処理 ---
+        // --- 別枠データの処理 ---
         else if (data.type === "SYNC_FULL_STATE") {
-            globalHistory = data.globalHistory || [];
-            altHistory = data.altHistory || [];
-            trackerState = data.trackerState || trackerState;
-            currentRoundData = data.roundData || currentRoundData;
-            activeTerrorSet = new Set(data.activeTerrors || []);
-            
-            saveLogs();
-            renderTables();
-            updateLamps();
-            elements.curRoundType.textContent = currentRoundData.type;
-            updateActiveTerrorDisplay();
+            roomGlobalHistory = data.globalHistory || [];
+            roomTrackerState = data.trackerState || roomTrackerState;
+            updateRoomSharedUI();
         }
-        else handleGameSyncData(data);
+        else if (data.type === "SYNC_HISTORY") {
+            roomGlobalHistory.unshift(data.log);
+            if (roomGlobalHistory.length > 50) roomGlobalHistory.pop();
+            updateRoomSharedUI();
+        }
+        else if (data.type === "SYNC_ENVIRONMENT") {
+            roomTrackerState = { ...roomTrackerState, ...data.tracker };
+            updateRoomSharedUI();
+        }
+        else if (data.type === "SYNC_ROUND") { 
+            // 共有情報のUI用（ローカル判定は自前でやるため何もしないか軽く表示）
+            checkShopWarningNeeds(data.roundType); 
+        }
     }
 
-    function handleGameSyncData(data) {
-        if (data.type === "SYNC_ENVIRONMENT") { trackerState = { ...trackerState, ...data.tracker }; updateLamps(); }
-        else if (data.type === "SYNC_HISTORY") { if(currentRoomType === 'public' || data.force) { globalHistory.unshift(data.log); applyHistoryLimit(); renderTables(); saveLogs(); } }
-        else if (data.type === "SYNC_ROUND") { currentRoundData.type = data.roundType; elements.curRoundType.textContent = data.roundType; checkShopWarningNeeds(data.roundType); }
-        else if (data.type === "SYNC_TERRORS") { data.terrors.forEach(t => activeTerrorSet.add(t)); updateActiveTerrorDisplay(); checkSpecialEffect(); }
+    function updateRoomSharedUI() {
+        if (!isInRoom || isHost) return;
+        
+        // ランプ更新
+        document.getElementById('rLampMystic').classList.toggle('active', roomTrackerState.mystic);
+        document.getElementById('rLampTwilight').classList.toggle('active', roomTrackerState.twilight);
+        document.getElementById('rLampBlood').classList.toggle('active', roomTrackerState.blood);
+        document.getElementById('rLampSolstice').classList.toggle('active', roomTrackerState.solstice);
+        document.getElementById('rLampColdNight').classList.toggle('active', roomTrackerState.coldNight);
+        document.getElementById('rLampBigBird').classList.toggle('active', roomTrackerState.bigBird);
+        document.getElementById('rLampPunishingBird').classList.toggle('active', roomTrackerState.punishingBird);
+        document.getElementById('rLampJudgementBird').classList.toggle('active', roomTrackerState.judgementBird);
+        
+        // 履歴テーブル更新
+        elements.roomGlobalHistoryBody.innerHTML = "";
+        if (roomGlobalHistory.length === 0) {
+            elements.roomGlobalHistoryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">共有された履歴はありません</td></tr>';
+            return;
+        }
+        
+        roomGlobalHistory.slice(0, 30).forEach((item) => {
+            const row = document.createElement('tr'); 
+            const isMid = item.type && item.type.toLowerCase().includes("midnight");
+            row.innerHTML = `<td>${item.time}</td><td>${isMid ? `<span class="terror-midnight">${item.type}</span>` : item.type}</td><td>${formatTerrorsForTable(item.terrors)}</td>`;
+            elements.roomGlobalHistoryBody.appendChild(row);
+        });
     }
 
     function updateMyTag() {
@@ -1203,7 +1286,7 @@
             let fireHtml = hasCurrentFire ? `<span class="streak-fire">🔥</span>` : '';
             let currHighlightClass = hasCurrentFire ? 'current-streak-highlight' : '';
 
-            // --- 日本語表記への変更 ---
+            // --- 日本語表記 ---
             let statsStr = `<span style="color:var(--text-muted); font-size:0.8rem;">[生還:${player.survivalCount || 0} | 最高:<span style="color:#fff;">${player.maxStreak || 0}</span> | <span class="${currHighlightClass}">現在:${player.sessionStreak || 0}</span>${fireHtml}]</span>`;
             
             let tagDisplay = player.tag !== 'none' ? `<span style="color:var(--info); font-size:0.8rem;">[${tagNamesMap[player.tag] || player.tag}]</span>` : '';
@@ -1333,7 +1416,7 @@
         if(!isEditModeEnabled) return;
         if(trackerState.hasOwnProperty(key)) { 
             trackerState[key] = !trackerState[key]; saveLogs(); updateLamps();
-            sendToNetwork({ type: "SYNC_ENVIRONMENT", tracker: trackerState });
+            if (isHost) sendToNetwork({ type: "SYNC_ENVIRONMENT", tracker: trackerState });
         }
     }
 
@@ -1382,11 +1465,16 @@
             elements.memoModalTitle.textContent = `【${cleanedName}】`;
         }
         
+        // --- Wikiリンク エラー修正対応 ---
         const toTitleCase = (str) => {
-            const exceptions = { "her": "HER", "mx": "MX", "bff": "BFF", "censored": "CENSORED" };
+            const exceptions = { 
+                "her": "HER", "mx": "MX", "bff": "BFF", "censored": "CENSORED",
+                "copyright infringement": "Copyright infringement"
+            };
             if (exceptions[str.toLowerCase()]) return exceptions[str.toLowerCase()];
             return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         };
+        
         if(elements.btnWikiSearch) {
             elements.btnWikiSearch.href = "https://wikiwiki.jp/ton_jp/" + encodeURIComponent(toTitleCase(cleanedName));
         }
@@ -1503,7 +1591,7 @@
         if ((lowerType.includes("blood") || lowerName.includes("blood")) && !(lowerType.includes("bloodbath") || lowerName.includes("bloodbath")) && !trackerState.blood) { trackerState.blood = true; envChanged = true; }
         
         saveLogs(); updateLamps();
-        if(envChanged) sendToNetwork({ type: "SYNC_ENVIRONMENT", tracker: trackerState });
+        if(envChanged && isHost) sendToNetwork({ type: "SYNC_ENVIRONMENT", tracker: trackerState });
     }
 
     function generateVRChatUrl(rawString) {
@@ -1610,10 +1698,10 @@
                 let p = roomPlayers.find(p => p.peerId === peer.id);
                 if(p) { p.info.survivalCount = localPlayerInfo.survivalCount; p.info.sessionStreak = localPlayerInfo.sessionStreak; p.info.maxStreak = localPlayerInfo.maxStreak; }
                 broadcastRoomState();
+                sendToNetwork({ type: "SYNC_HISTORY", log: logItem });
             } else {
                 sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: localPlayerInfo.sessionStreak, maxStreak: localPlayerInfo.maxStreak });
             }
-            sendToNetwork({ type: "SYNC_HISTORY", log: logItem });
         }
     }
 
@@ -1648,7 +1736,7 @@
                             finalizeRound(); elements.curRoundType.textContent = "休憩時間"; elements.curRoundType.className = "status-val intermission"; elements.curTerror.textContent = "---"; 
                         }
                         checkSpecialEffect();
-                        sendToNetwork({ type: "SYNC_ROUND", roundType: currentRoundData.type });
+                        if(isHost) sendToNetwork({ type: "SYNC_ROUND", roundType: currentRoundData.type });
                         break;
                     case "TERRORS":
                         if (data.Names && data.Names.length > 0) {
@@ -1657,7 +1745,6 @@
                             handleTerrorDetection(data.DisplayName);
                         }
                         updateActiveTerrorDisplay(); checkSpecialEffect();
-                        sendToNetwork({ type: "SYNC_TERRORS", terrors: Array.from(activeTerrorSet) });
                         break;
                     case "ALIVE": 
                         if (data.Value === false && currentRoundData.active) {
