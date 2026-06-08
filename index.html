@@ -857,12 +857,10 @@
                 createRoom(true, data.roomId);
             } else {
                 if (data.type === 'public') {
-                    // オープン部屋への再接続
                     let searchId = data.roomId.replace("ton_pub_", "");
                     elements.searchInstanceId.value = searchId;
                     joinOpenRoom(true, data.roomId);
                 } else {
-                    // プライベートへの再接続
                     elements.joinRoomName.value = data.roomId;
                     elements.joinPassword.value = data.pwd || "";
                     joinRoom(false, data.roomId, data.pwd);
@@ -887,9 +885,12 @@
         return true;
     }
 
+    // --- IDサニタイズ処理の修正（不正文字を排除） ---
     function sanitizeInstanceIdForPeer(rawStr) {
         if(!rawStr || rawStr === "未接続") return null;
-        return rawStr.replace(/[^a-zA-Z0-9_-]/g, '_');
+        // 英数字とハイフンのみを許容するように変換
+        let safe = rawStr.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+        return safe;
     }
 
     function switchMultiTab(tabType) {
@@ -1009,6 +1010,16 @@
                 connections.push(conn);
                 roomPlayers.push({ peerId: conn.peer, info: conn.metadata.playerInfo });
                 broadcastRoomState();
+
+                // --- 途中参加者へのフルデータ同期 ---
+                conn.send({
+                    type: "SYNC_FULL_STATE",
+                    globalHistory: globalHistory,
+                    altHistory: altHistory,
+                    trackerState: trackerState,
+                    roundData: currentRoundData,
+                    activeTerrors: Array.from(activeTerrorSet)
+                });
             });
             conn.on('data', (data) => handleNetworkDataHost(conn.peer, data));
             conn.on('close', () => {
@@ -1078,11 +1089,9 @@
         else { if (hostConnection && hostConnection.open) hostConnection.send(data); }
     }
 
-    // --- 同期の完全化（マスター強制同期） ---
     function broadcastRoomState() {
         if(!isHost) return;
         const state = { players: roomPlayers.map(p => p.info) };
-        // ホストが保持する全データをクライアントへ上書き送信する
         sendToNetwork({ type: "ROOM_STATE_UPDATE", state: state });
         renderMultiplayerState(state); 
     }
@@ -1106,6 +1115,20 @@
     function handleNetworkDataClient(data) {
         if (data.type === "ERROR") { alert(data.message); leaveRoom(); }
         else if (data.type === "ROOM_STATE_UPDATE") renderMultiplayerState(data.state);
+        // --- フル同期データの受信処理 ---
+        else if (data.type === "SYNC_FULL_STATE") {
+            globalHistory = data.globalHistory || [];
+            altHistory = data.altHistory || [];
+            trackerState = data.trackerState || trackerState;
+            currentRoundData = data.roundData || currentRoundData;
+            activeTerrorSet = new Set(data.activeTerrors || []);
+            
+            saveLogs();
+            renderTables();
+            updateLamps();
+            elements.curRoundType.textContent = currentRoundData.type;
+            updateActiveTerrorDisplay();
+        }
         else handleGameSyncData(data);
     }
 
@@ -1180,7 +1203,8 @@
             let fireHtml = hasCurrentFire ? `<span class="streak-fire">🔥</span>` : '';
             let currHighlightClass = hasCurrentFire ? 'current-streak-highlight' : '';
 
-            let statsStr = `<span style="color:var(--text-muted); font-size:0.8rem;">[生還:${player.survivalCount || 0} | Max:<span style="color:#fff;">${player.maxStreak || 0}</span> | <span class="${currHighlightClass}">Cur:${player.sessionStreak || 0}</span>${fireHtml}]</span>`;
+            // --- 日本語表記への変更 ---
+            let statsStr = `<span style="color:var(--text-muted); font-size:0.8rem;">[生還:${player.survivalCount || 0} | 最高:<span style="color:#fff;">${player.maxStreak || 0}</span> | <span class="${currHighlightClass}">現在:${player.sessionStreak || 0}</span>${fireHtml}]</span>`;
             
             let tagDisplay = player.tag !== 'none' ? `<span style="color:var(--info); font-size:0.8rem;">[${tagNamesMap[player.tag] || player.tag}]</span>` : '';
             
@@ -1454,13 +1478,10 @@
         });
     }
 
-    // --- 【重要】テラー検出・フィルタリング処理 ---
     function handleTerrorDetection(rawName) {
         const c = cleanTerrorName(rawName, currentRoundData.type);
         if (currentRoundData.active && c !== "") {
             activeTerrorSet.add(c);
-            
-            // "???" 以外の本物のテラーが1つでも判明した場合、"???" をリストから自動削除する
             let hasRealTerror = Array.from(activeTerrorSet).some(t => !/^[?？]+$/.test(t));
             if (hasRealTerror) {
                 activeTerrorSet.delete("???");
