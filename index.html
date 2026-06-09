@@ -34,15 +34,8 @@
             transition: border-width 0.5s ease, border-color 0.5s ease;
         }
         
-        .special-border {
-            border-width: 15px !important;
-            animation: border-pulse 3s infinite ease-in-out;
-        }
-        @keyframes border-pulse {
-            0% { border-color: var(--special-color); }
-            50% { border-color: #141419; }
-            100% { border-color: var(--special-color); }
-        }
+        .special-border { border-width: 15px !important; animation: border-pulse 3s infinite ease-in-out; }
+        @keyframes border-pulse { 0% { border-color: var(--special-color); } 50% { border-color: #141419; } 100% { border-color: var(--special-color); } }
 
         .dashboard { max-width: 1400px; margin: 0 auto; }
         
@@ -52,10 +45,7 @@
             margin-bottom: 20px; cursor: pointer; box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
             animation: pulse-warn 1.5s infinite alternate;
         }
-        @keyframes pulse-warn {
-            0% { box-shadow: 0 0 10px rgba(255, 71, 87, 0.3); background: #3a1217; }
-            100% { box-shadow: 0 0 25px rgba(255, 71, 87, 0.6); background: #5a1923; color: #fff; }
-        }
+        @keyframes pulse-warn { 0% { box-shadow: 0 0 10px rgba(255, 71, 87, 0.3); background: #3a1217; } 100% { box-shadow: 0 0 25px rgba(255, 71, 87, 0.6); background: #5a1923; color: #fff; } }
 
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--card-border); padding-bottom: 15px; margin-bottom: 20px; }
         h1 { margin: 0; font-size: 1.6rem; color: var(--info); letter-spacing: 1px; }
@@ -96,6 +86,7 @@
         .searching { color: var(--warning); }
         .terror-alt { color: var(--alt-aqua) !important; font-weight: bold; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
         .terror-midnight { color: var(--midnight-red) !important; font-weight: bold; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
+        .terror-cold { color: #74b9ff !important; font-weight: bold; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
 
         .active-terror-p { margin: 0 0 10px 0; padding-left: 12px; border-left: 4px solid #3d3d54; line-height: 1.4; font-size: 1.2rem; word-break: break-word; cursor: pointer; }
         .active-terror-p:last-child { margin-bottom: 0; }
@@ -123,7 +114,7 @@
 
         .lamp { width: 12px; height: 12px; border-radius: 50%; background: #2c2c35; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); display: inline-block; transition: transform 0.1s, border-color 0.1s; }
         .lamp.mystic { --glow: #38bdf8; } .lamp.twilight { --glow: #ffa502; } .lamp.blood { --glow: #ff4757; }
-        .lamp.solstice { --glow: #00d2d3; } .lamp.cold { --glow: #74b9ff; } .lamp.bird { --glow: #ff4757; }
+        .lamp.solstice { --glow: #00d2d3; } .lamp.bird { --glow: #ff4757; }
         .lamp.active { background: var(--glow); box-shadow: 0 0 10px var(--glow), inset 0 1px 2px rgba(255,255,255,0.4); }
 
         .table-wrapper { max-height: 280px; overflow-y: auto; }
@@ -191,8 +182,8 @@
         .player-item.dead .player-name { color: var(--accent) !important; text-decoration: line-through; }
         .player-info { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
         
-        .streak-crown { color: var(--warning); font-size: 1.1rem; filter: drop-shadow(0 0 2px rgba(255,165,2,0.8)); margin-right: 4px; }
-        .streak-fire { color: #ff4757; font-size: 1.1rem; filter: drop-shadow(0 0 2px rgba(255,71,87,0.8)); margin-left: 4px; }
+        .streak-crown { color: var(--warning); font-size: 0.85rem; filter: drop-shadow(0 0 2px rgba(255,165,2,0.8)); margin-left: 4px; }
+        .streak-fire { color: #ff4757; font-size: 0.85rem; filter: drop-shadow(0 0 2px rgba(255,71,87,0.8)); margin-left: 4px; }
         .current-streak-highlight { background: rgba(255, 165, 2, 0.15); border: 1px solid var(--warning); padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
         
         .dev-badge { background: var(--dev-bg); color: var(--dev-text); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
@@ -344,7 +335,7 @@
 
             <div class="card" id="roomSharedDataCard" style="display: none; border-color: var(--info);">
                 <div class="card-header-wrapper" style="margin-bottom: 8px;">
-                    <h2 style="border-left-color: var(--info);">🌐 ルーム共有環境・履歴</h2>
+                    <h2 style="border-left-color: var(--info);">🌐 ルーム共有環境・履歴 <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(オルタ・特殊限定)</span></h2>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; background: rgba(0, 210, 211, 0.05); padding: 8px; border-radius: 4px; border: 1px solid rgba(0, 210, 211, 0.2);">
                     ※このパネルはホストから共有されたデータのみを表示しています。右側のあなたのローカル記録（DB）には混ざりません。
@@ -358,7 +349,6 @@
                             <div class="lamp-container"><span id="rLampTwilight" class="lamp twilight"></span></div>
                             <div class="lamp-container"><span id="rLampBlood" class="lamp blood"></span></div>
                             <div class="lamp-container"><span id="rLampSolstice" class="lamp solstice"></span></div>
-                            <div class="lamp-container"><span id="rLampColdNight" class="lamp cold"></span></div>
                         </div>
                     </div>
                     <div style="flex: 1; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 4px; border: 1px solid var(--card-border);">
@@ -376,11 +366,11 @@
                         <thead>
                             <tr>
                                 <th style="width: 20%;">時間</th>
-                                <th style="width: 30%;">ラウンド</th>
+                                <th style="width: 30%;">特殊枠タイプ</th>
                                 <th style="width: 50%;">出現テラー</th>
                             </tr>
                         </thead>
-                        <tbody id="roomGlobalHistoryBody">
+                        <tbody id="roomAltHistoryBody">
                             <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">共有データ待機中...</td></tr>
                         </tbody>
                     </table>
@@ -402,7 +392,6 @@
                             <div class="lamp-container" onclick="toggleTrackerLamp('twilight')"><span id="lampTwilight" class="lamp twilight"></span><span>トワイライト</span></div>
                             <div class="lamp-container" onclick="toggleTrackerLamp('blood')"><span id="lampBlood" class="lamp blood"></span><span>ブラッド</span></div>
                             <div class="lamp-container" onclick="toggleTrackerLamp('solstice')"><span id="lampSolstice" class="lamp solstice"></span><span>ソルスティス</span></div>
-                            <div class="lamp-container" onclick="toggleTrackerLamp('coldNight')"><span id="lampColdNight" class="lamp cold"></span><span>コールドナイト</span></div>
                         </div>
                     </div>
                     <div class="tracker-item">
@@ -548,7 +537,8 @@
 
             <div id="multiOpenSection" style="display:none;">
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">
-                    現在接続中のインスタンス（または指定したID）で公開されているオープン部屋を検索し、参加します。
+                    現在接続中のインスタンス（または指定したID）で公開されているオープン部屋を検索し、参加します。<br>
+                    <span style="color:var(--warning);">※オープン部屋への参加は自動的に匿名（ゴースト）扱いになります。</span>
                 </div>
                 <div style="margin-bottom: 10px;">
                     <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">インスタンスID</label>
@@ -557,12 +547,6 @@
                         <button class="btn-action" style="flex:1; padding:4px;" onclick="fillCurrentInstance()">現在のIDを入力</button>
                     </div>
                 </div>
-                
-                <label class="checksheet-item" style="margin-bottom: 15px; border-color: var(--info);">
-                    <input type="checkbox" id="anonymousJoinCheck" class="checksheet-checkbox">
-                    <span class="management-label" style="font-size:0.8rem;">匿名で参加する（リストに名前を出さず環境共有のみ）</span>
-                </label>
-                
                 <button class="btn-action" style="width:100%; background:#2c2519; color:var(--info); border-color:var(--info); padding:10px;" onclick="joinOpenRoom()">オープン部屋を検索して参加</button>
             </div>
         </div>
@@ -687,8 +671,8 @@
     let terrorMemos = {}; 
 
     // マルチプレイ共有用（ローカルに保存されない別枠データ）
-    let roomGlobalHistory = [];
-    let roomTrackerState = { mystic: false, twilight: false, blood: false, solstice: false, coldNight: false, bigBird: false, punishingBird: false, judgementBird: false };
+    let roomAltHistory = [];
+    let roomTrackerState = { mystic: false, twilight: false, blood: false, solstice: false, bigBird: false, punishingBird: false, judgementBird: false };
 
     let peer = null;
     let isHost = false;
@@ -725,7 +709,7 @@
 
     const BLOCK_LIST = ["parhelion's victims", "tbh", "withered bonnie"];
     const EXCLUSION_MAP = { "Faker": ["Sonic", "Sanic"], "Shadow Evil Purple Foxy": ["Sanic"] };
-    const ROUND_NAME_MAP = { "Alternate": "オルタネイト", "Midnight": "ミッドナイト", "Unbound": "アンバウンド", "Fog": "霧", "Ghost": "ゴースト" };
+    const ROUND_NAME_MAP = { "Alternate": "オルタネイト", "Midnight": "ミッドナイト", "Unbound": "アンバウンド", "Fog": "霧", "Ghost": "ゴースト", "Cold Night": "コールドナイト" };
     const tagNamesMap = { 
         'emeco': 'エメコ', 'pot': '壺', 'stun': 'スタンします', 'chase': 'チェイスします', 
         'survive': '生存希望', 'evo_alt': 'オルタ進化', 'evo_blood': 'ブラバ進化', 'evo_mid': 'ミッド進化',
@@ -747,7 +731,7 @@
     let currentSort = { key: 'met', order: 'desc' }; 
     
     let trackerState = {
-        mystic: false, twilight: false, blood: false, solstice: false, coldNight: false,
+        mystic: false, twilight: false, blood: false, solstice: false,
         bigBird: false, punishingBird: false, judgementBird: false
     };
     
@@ -774,7 +758,6 @@
         lampTwilight: document.getElementById('lampTwilight'),
         lampBlood: document.getElementById('lampBlood'),
         lampSolstice: document.getElementById('lampSolstice'),
-        lampColdNight: document.getElementById('lampColdNight'),
         lampBigBird: document.getElementById('lampBigBird'),
         lampPunishingBird: document.getElementById('lampPunishingBird'),
         lampJudgementBird: document.getElementById('lampJudgementBird'),
@@ -824,9 +807,8 @@
         joinRoomName: document.getElementById('joinRoomName'),
         joinPassword: document.getElementById('joinPassword'),
         searchInstanceId: document.getElementById('searchInstanceId'),
-        anonymousJoinCheck: document.getElementById('anonymousJoinCheck'),
         roomSharedDataCard: document.getElementById('roomSharedDataCard'),
-        roomGlobalHistoryBody: document.getElementById('roomGlobalHistoryBody')
+        roomAltHistoryBody: document.getElementById('roomAltHistoryBody')
     };
 
     elements.colEffectColor.addEventListener('input', function() { elements.txtEffectColorHex.value = this.value; });
@@ -843,7 +825,7 @@
         if (gLog) { try { globalHistory = JSON.parse(gLog); } catch(e){} }
         if (aLog) { try { altHistory = JSON.parse(aLog); } catch(e){} }
         if (cLog) { try { gameCounters = { ...gameCounters, ...JSON.parse(cLog) }; if (!gameCounters.bestStreaks) gameCounters.bestStreaks = [0, 0, 0]; } catch(e){} }
-        if (tLog) { try { trackerState = { ...trackerState, ...JSON.parse(tLog) }; } catch(e){} } 
+        if (tLog) { try { trackerState = { ...trackerState, ...JSON.parse(tLog) }; delete trackerState.coldNight; } catch(e){} } 
         if (dLog) { try { terrorDatabase = JSON.parse(dLog); } catch(e){} }
         if (mLog) { try { terrorMemos = JSON.parse(mLog); } catch(e){} }
         if (mAlt) { try { customAltTerrors = JSON.parse(mAlt); } catch(e){} }
@@ -900,8 +882,6 @@
             const data = JSON.parse(localStorage.getItem('ton_session'));
             if (!validatePlayerName()) return;
             
-            elements.anonymousJoinCheck.checked = data.anon || false;
-            
             if (data.isHost) {
                 elements.createRoomType.value = data.type;
                 elements.createPassword.value = data.pwd || "";
@@ -936,7 +916,7 @@
         return true;
     }
 
-    // --- IDサニタイズ処理の修正（不正文字を排除） ---
+    // --- IDサニタイズ処理 ---
     function sanitizeInstanceIdForPeer(rawStr) {
         if(!rawStr || rawStr === "未接続") return null;
         let safe = rawStr.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
@@ -1068,10 +1048,10 @@
                 roomPlayers.push({ peerId: conn.peer, info: conn.metadata.playerInfo });
                 broadcastRoomState();
 
-                // --- 途中参加者へのフルデータ同期 ---
+                // --- 途中参加者へのフルデータ同期 (オルタ履歴のみ) ---
                 conn.send({
                     type: "SYNC_FULL_STATE",
-                    globalHistory: globalHistory,
+                    altHistory: altHistory,
                     trackerState: trackerState
                 });
             });
@@ -1089,7 +1069,7 @@
         
         let targetId = forceId;
         let pwd = forcePwd !== null ? forcePwd : "";
-        let anon = elements.anonymousJoinCheck.checked;
+        let anon = isOpenRoom; // オープン部屋は常に匿名化
 
         if (!targetId) {
             if (isOpenRoom) {
@@ -1136,8 +1116,8 @@
         elements.multiplayerPanel.style.display = "none";
         elements.roomSharedDataCard.style.display = "none";
         
-        roomGlobalHistory = [];
-        roomTrackerState = { mystic: false, twilight: false, blood: false, solstice: false, coldNight: false, bigBird: false, punishingBird: false, judgementBird: false };
+        roomAltHistory = [];
+        roomTrackerState = { mystic: false, twilight: false, blood: false, solstice: false, bigBird: false, punishingBird: false, judgementBird: false };
         updateRoomSharedUI();
         clearSession();
     }
@@ -1175,21 +1155,24 @@
         else if (data.type === "ROOM_STATE_UPDATE") renderMultiplayerState(data.state);
         // --- 別枠データの処理 ---
         else if (data.type === "SYNC_FULL_STATE") {
-            roomGlobalHistory = data.globalHistory || [];
+            roomAltHistory = data.altHistory || [];
             roomTrackerState = data.trackerState || roomTrackerState;
             updateRoomSharedUI();
         }
         else if (data.type === "SYNC_HISTORY") {
-            roomGlobalHistory.unshift(data.log);
-            if (roomGlobalHistory.length > 50) roomGlobalHistory.pop();
-            updateRoomSharedUI();
+            // 受信した履歴が「オルタ・特殊」判定を持っていれば追加
+            if (data.log && data.log.isAlt) {
+                roomAltHistory.unshift(data.log);
+                if (roomAltHistory.length > 50) roomAltHistory.pop();
+                updateRoomSharedUI();
+            }
         }
         else if (data.type === "SYNC_ENVIRONMENT") {
             roomTrackerState = { ...roomTrackerState, ...data.tracker };
             updateRoomSharedUI();
         }
         else if (data.type === "SYNC_ROUND") { 
-            // 共有情報のUI用（ローカル判定は自前でやるため何もしないか軽く表示）
+            // 共有情報のUI用
             checkShopWarningNeeds(data.roundType); 
         }
     }
@@ -1202,23 +1185,26 @@
         document.getElementById('rLampTwilight').classList.toggle('active', roomTrackerState.twilight);
         document.getElementById('rLampBlood').classList.toggle('active', roomTrackerState.blood);
         document.getElementById('rLampSolstice').classList.toggle('active', roomTrackerState.solstice);
-        document.getElementById('rLampColdNight').classList.toggle('active', roomTrackerState.coldNight);
         document.getElementById('rLampBigBird').classList.toggle('active', roomTrackerState.bigBird);
         document.getElementById('rLampPunishingBird').classList.toggle('active', roomTrackerState.punishingBird);
         document.getElementById('rLampJudgementBird').classList.toggle('active', roomTrackerState.judgementBird);
         
-        // 履歴テーブル更新
-        elements.roomGlobalHistoryBody.innerHTML = "";
-        if (roomGlobalHistory.length === 0) {
-            elements.roomGlobalHistoryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">共有された履歴はありません</td></tr>';
+        // オルタ限定履歴テーブル更新
+        elements.roomAltHistoryBody.innerHTML = "";
+        if (roomAltHistory.length === 0) {
+            elements.roomAltHistoryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">共有された特殊記録はありません</td></tr>';
             return;
         }
         
-        roomGlobalHistory.slice(0, 30).forEach((item) => {
+        roomAltHistory.slice(0, 30).forEach((item) => {
             const row = document.createElement('tr'); 
-            const isMid = item.type && item.type.toLowerCase().includes("midnight");
-            row.innerHTML = `<td>${item.time}</td><td>${isMid ? `<span class="terror-midnight">${item.type}</span>` : item.type}</td><td>${formatTerrorsForTable(item.terrors)}</td>`;
-            elements.roomGlobalHistoryBody.appendChild(row);
+            const typeLower = item.type ? item.type.toLowerCase() : "";
+            let typeHtml = `<span class="terror-midnight">${item.type}</span>`;
+            if (typeLower.includes("alternate")) typeHtml = `<span class="terror-alt">${item.type}</span>`;
+            else if (typeLower.includes("cold night")) typeHtml = `<span class="terror-cold">${item.type}</span>`;
+
+            row.innerHTML = `<td>${item.time}</td><td>${typeHtml}</td><td>${formatTerrorsForTable(item.terrors)}</td>`;
+            elements.roomAltHistoryBody.appendChild(row);
         });
     }
 
@@ -1274,11 +1260,6 @@
             let hostMark = player.isHost ? '<span class="host-mark">⭐</span>' : '';
             let isAuthor = (player.vrcId === AUTHOR_ID);
             
-            let nameContent = `<span class="player-name">${player.name}</span>`;
-            if (isAuthor) {
-                nameContent = `<span class="dev-badge">🛠️ Creator</span> <span class="player-name" style="background: var(--dev-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:bold;">${player.name}</span>`;
-            }
-            
             let hasMaxCrown = (player.maxStreak > 0 && player.maxStreak === maxBestInRoom);
             let hasCurrentFire = (player.sessionStreak > 0 && player.sessionStreak === currentBestInRoom);
 
@@ -1286,12 +1267,18 @@
             let fireHtml = hasCurrentFire ? `<span class="streak-fire">🔥</span>` : '';
             let currHighlightClass = hasCurrentFire ? 'current-streak-highlight' : '';
 
-            // --- 日本語表記 ---
-            let statsStr = `<span style="color:var(--text-muted); font-size:0.8rem;">[生還:${player.survivalCount || 0} | 最高:<span style="color:#fff;">${player.maxStreak || 0}</span> | <span class="${currHighlightClass}">現在:${player.sessionStreak || 0}</span>${fireHtml}]</span>`;
+            // 名前の隣に王冠と炎を配置
+            let nameContent = `<span class="player-name">${player.name}</span>`;
+            if (isAuthor) {
+                nameContent = `<span class="dev-badge">🛠️ Creator</span> <span class="player-name" style="background: var(--dev-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:bold;">${player.name}</span>`;
+            }
+            nameContent += `${crownHtml}${fireHtml}`;
+            
+            let statsStr = `<span style="color:var(--text-muted); font-size:0.8rem;">[生還:${player.survivalCount || 0} | 最高:<span style="color:#fff;">${player.maxStreak || 0}</span> | <span class="${currHighlightClass}">現在:${player.sessionStreak || 0}</span>]</span>`;
             
             let tagDisplay = player.tag !== 'none' ? `<span style="color:var(--info); font-size:0.8rem;">[${tagNamesMap[player.tag] || player.tag}]</span>` : '';
             
-            li.innerHTML = `<div class="player-info">${hostMark} ${crownHtml} ${statsStr} ${nameContent}</div><div>${tagDisplay}</div>`;
+            li.innerHTML = `<div class="player-info">${hostMark} ${statsStr} ${nameContent}</div><div>${tagDisplay}</div>`;
             elements.playerListContainer.appendChild(li);
             
             if (player.tag !== 'afk') { validPlayers++; if (player.isAlive) totalAlive++; }
@@ -1469,7 +1456,8 @@
         const toTitleCase = (str) => {
             const exceptions = { 
                 "her": "HER", "mx": "MX", "bff": "BFF", "censored": "CENSORED",
-                "copyright infringement": "Copyright infringement"
+                "copyright infringement": "Copyright infringement",
+                "pov: bug": "POV Bug" // 全角スペース対応
             };
             if (exceptions[str.toLowerCase()]) return exceptions[str.toLowerCase()];
             return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -1494,7 +1482,7 @@
     function resetSection(sectionKey) {
         if (!confirm(`リセットして初期化しますか？`)) return;
         if (sectionKey === 'counters') { gameCounters.total = 0; gameCounters.survival = 0; gameCounters.currentStreak = 0; updateCountersDisplay(); }
-        else if (sectionKey === 'lamps') { trackerState = { mystic: false, twilight: false, blood: false, solstice: false, coldNight: false, bigBird: false, punishingBird: false, judgementBird: false }; updateLamps(); }
+        else if (sectionKey === 'lamps') { trackerState = { mystic: false, twilight: false, blood: false, solstice: false, bigBird: false, punishingBird: false, judgementBird: false }; updateLamps(); }
         else if (sectionKey === 'alt') { altHistory = []; renderTables(); } else if (sectionKey === 'global') { globalHistory = []; renderTables(); }
         saveLogs();
     }
@@ -1519,8 +1507,8 @@
     function updateLamps() {
         elements.lampMystic.classList.toggle('active', trackerState.mystic); elements.lampTwilight.classList.toggle('active', trackerState.twilight); 
         elements.lampBlood.classList.toggle('active', trackerState.blood); elements.lampSolstice.classList.toggle('active', trackerState.solstice);
-        elements.lampColdNight.classList.toggle('active', trackerState.coldNight); elements.lampBigBird.classList.toggle('active', trackerState.bigBird); 
-        elements.lampPunishingBird.classList.toggle('active', trackerState.punishingBird); elements.lampJudgementBird.classList.toggle('active', trackerState.judgementBird);
+        elements.lampBigBird.classList.toggle('active', trackerState.bigBird); elements.lampPunishingBird.classList.toggle('active', trackerState.punishingBird); 
+        elements.lampJudgementBird.classList.toggle('active', trackerState.judgementBird);
     }
 
     function formatTerrorsForTable(terrorsStr) {
@@ -1536,14 +1524,25 @@
     function renderTables() {
         elements.globalHistoryBody.innerHTML = "";
         globalHistory.slice(0, displayMaxLimit).forEach((item, index) => {
-            const row = document.createElement('tr'); const isMid = item.type && item.type.toLowerCase().includes("midnight");
-            row.innerHTML = `<td>${item.time}</td><td>${isMid ? `<span class="terror-midnight">${item.type}</span>` : item.type}</td><td><span class="editable-log-text" onclick="editLogTerrorText(${index})">${formatTerrorsForTable(item.terrors)}</span></td>`;
+            const row = document.createElement('tr'); 
+            const typeLower = item.type ? item.type.toLowerCase() : "";
+            let typeHtml = `<span class="terror-midnight">${item.type}</span>`;
+            if (typeLower.includes("alternate")) typeHtml = `<span class="terror-alt">${item.type}</span>`;
+            else if (typeLower.includes("cold night")) typeHtml = `<span class="terror-cold">${item.type}</span>`;
+            else if (!typeLower.includes("midnight")) typeHtml = item.type; // Classic etc.
+
+            row.innerHTML = `<td>${item.time}</td><td>${typeHtml}</td><td><span class="editable-log-text" onclick="editLogTerrorText(${index})">${formatTerrorsForTable(item.terrors)}</span></td>`;
             elements.globalHistoryBody.appendChild(row);
         });
+        
         elements.altHistoryBody.innerHTML = "";
         altHistory.slice(0, displayMaxLimit).forEach((item, index) => {
             const row = document.createElement('tr'); const resultMark = item.isDead ? '<span class="result-cross">✕</span>' : '<span class="result-circle">○</span>';
-            const typeHtml = item.type.toLowerCase().includes("alternate") ? `<span class="terror-alt">${item.type}</span>` : `<span class="terror-midnight">${item.type}</span>`;
+            const typeLower = item.type ? item.type.toLowerCase() : "";
+            let typeHtml = `<span class="terror-midnight">${item.type}</span>`;
+            if (typeLower.includes("alternate")) typeHtml = `<span class="terror-alt">${item.type}</span>`;
+            else if (typeLower.includes("cold night")) typeHtml = `<span class="terror-cold">${item.type}</span>`;
+
             row.innerHTML = `<td>${item.time}</td><td>${typeHtml}</td><td>${formatTerrorsForTable(item.terrors)}</td><td style="text-align: center;"><span class="editable-result-mark" onclick="toggleAltResult(${index})">${resultMark}</span></td>`;
             elements.altHistoryBody.appendChild(row);
         });
@@ -1587,7 +1586,6 @@
         if (lowerType.includes("mystic") && !trackerState.mystic) { trackerState.mystic = true; envChanged = true; }
         if (lowerType.includes("twilight") && !trackerState.twilight) { trackerState.twilight = true; envChanged = true; }
         if (lowerType.includes("solstice") && !trackerState.solstice) { trackerState.solstice = true; envChanged = true; }
-        if (lowerType.includes("cold night") && !trackerState.coldNight) { trackerState.coldNight = true; envChanged = true; }
         if ((lowerType.includes("blood") || lowerName.includes("blood")) && !(lowerType.includes("bloodbath") || lowerName.includes("bloodbath")) && !trackerState.blood) { trackerState.blood = true; envChanged = true; }
         
         saveLogs(); updateLamps();
@@ -1669,14 +1667,18 @@
             }
         });
         
-        const logItem = { time: timeStr, type: currentRoundData.type, terrors: terrorsStr, isDead: currentRoundData.isDead };
-        globalHistory.unshift(logItem); 
-        
+        const typeLowerForLog = currentRoundData.type.toLowerCase();
         const allMasters = [...DEFAULT_ALT_TERRORS, ...customAltTerrors];
-        const isAlt = terrorsStr.split(/[&,]/).map(t => t.trim().toLowerCase()).some(indiv => 
+        
+        // --- コールドナイトもオルタ・特殊履歴として判定する ---
+        const isAltRoundType = typeLowerForLog.includes("alternate") || typeLowerForLog.includes("midnight") || typeLowerForLog.includes("cold night");
+        const isAlt = isAltRoundType || terrorsStr.split(/[&,]/).map(t => t.trim().toLowerCase()).some(indiv => 
             !BLOCK_LIST.some(b => b === "parhelion's victims" ? indiv.includes(b) : indiv === b) && 
             allMasters.some(m => indiv === m.toLowerCase() || indiv.includes(m.toLowerCase()) || indiv.includes("alternate"))
         );
+        
+        const logItem = { time: timeStr, type: currentRoundData.type, terrors: terrorsStr, isDead: currentRoundData.isDead, isAlt: isAlt };
+        globalHistory.unshift(logItem); 
         if (isAlt) altHistory.unshift(logItem);
         
         applyHistoryLimit(); saveLogs(); updateCountersDisplay(); renderTerrorDatabase(); renderTables(); checkShopWarningNeeds(currentRoundData.type); activeTerrorSet.clear();
