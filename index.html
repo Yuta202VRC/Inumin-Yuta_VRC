@@ -169,7 +169,7 @@
         .master-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
         .input-text-dark { flex: 1; background: #0b0b0e; color: #fff; border: 1px solid var(--card-border); padding: 8px; border-radius: 4px; font-size: 0.85rem; outline: none; }
         .input-text-dark:focus { border-color: var(--info); }
-        .btn-add-master { background: var(--info); color: #fff; border: none; padding: 0 14px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; cursor: pointer; }
+        .btn-add-master { background: var(--info); color: #fff; border: none; padding: 0 14px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; }
         .btn-add-master:hover { background: #00b6b7; }
         .master-tags-wrapper { max-height: 120px; overflow-y: auto; background: #0b0b0e; padding: 8px; border-radius: 4px; display: flex; flex-wrap: wrap; gap: 6px; border: 1px solid var(--card-border); }
         .master-tag { display: inline-flex; align-items: center; background: #232330; color: #cda2ff; border: 1px solid #3d3d54; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
@@ -232,6 +232,7 @@
     </div>
 
     <div class="grid-row">
+        <!-- Left Column: Core Dashboard -->
         <div class="grid-col col-left">
             <div class="card">
                 <div class="card-header-wrapper">
@@ -293,6 +294,7 @@
                 </div>
             </div>
 
+            <!-- マルチプレイ管理パネル -->
             <div class="card" id="multiplayerPanel" style="display: none; border-color: var(--warning);">
                 <div class="card-header-wrapper">
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -344,6 +346,7 @@
                 </div>
             </div>
 
+            <!-- ★完全別枠: ゲスト用マルチプレイ履歴共有パネル -->
             <div class="card" id="roomSharedDataCard" style="display: none; border-color: var(--info);">
                 <div class="card-header-wrapper" style="margin-bottom: 8px;">
                     <h2 style="border-left-color: var(--info);">🌐 ルーム共有環境・履歴 <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(オルタ・特殊限定)</span></h2>
@@ -387,8 +390,11 @@
                     </table>
                 </div>
             </div>
-            </div>
+            <!-- 別枠パネル終了 -->
 
+        </div>
+
+        <!-- Right Column: Trackers & DB (ローカル専用) -->
         <div class="grid-col col-right">
             <div class="card">
                 <div class="card-header-wrapper">
@@ -479,6 +485,7 @@
     </div>
 </div>
 
+<!-- セッション再接続用モーダル -->
 <div id="reconnectModal" class="modal-overlay">
     <div class="modal-window">
         <div class="modal-header" style="border-bottom:none; justify-content:center; padding-bottom:0;">
@@ -494,6 +501,7 @@
     </div>
 </div>
 
+<!-- Multiplayer Modal -->
 <div id="multiplayerModal" class="modal-overlay" onclick="toggleModal('multiplayerModal', false)">
     <div class="modal-window" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -516,6 +524,7 @@
                 <button id="tabOpenSearch" class="multi-tab" onclick="switchMultiTab('open')">オープン部屋</button>
             </div>
 
+            <!-- Create Room Section -->
             <div id="multiCreateSection">
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">
                     ※オープン部屋を作成した場合、現在のインスタンスIDに基づいて部屋が作られます。同じインスタンスにいる他の人は、リストから直接参加できるようになります。
@@ -534,6 +543,7 @@
                 <button class="btn-action" style="width:100%; background:#2c2519; color:var(--warning); border-color:var(--warning); padding:10px;" onclick="createRoom()">ホストとして部屋を作成</button>
             </div>
 
+            <!-- Join Room Section (Private) -->
             <div id="multiJoinSection" style="display:none;">
                 <div style="margin-bottom: 10px;">
                     <label style="display:block; font-size:0.8rem; margin-bottom:4px; color:var(--text-muted);">参加する鍵部屋ID</label>
@@ -546,6 +556,7 @@
                 <button class="btn-action" style="width:100%; background:#2c2519; color:var(--info); border-color:var(--info); padding:10px;" onclick="joinRoom(false)">部屋に参加する</button>
             </div>
 
+            <!-- Open Room Search Section -->
             <div id="multiOpenSection" style="display:none;">
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">
                     現在接続中のインスタンス（または指定したID）で公開されているオープン部屋を検索し、参加します。<br>
@@ -564,6 +575,7 @@
     </div>
 </div>
 
+<!-- Data Management Modal -->
 <div id="managementModal" class="modal-overlay" onclick="toggleModal('managementModal', false)">
     <div class="modal-window" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -594,12 +606,13 @@
         <div class="master-panel">
             <span style="font-size: 0.85rem; font-weight: bold; color: var(--info); display: block; margin-bottom: 6px;">✨ カスタム特殊演出の管理</span>
             <div class="master-input-row" style="align-items: center; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; border: 1px solid var(--card-border);">
-                <select id="selEffectRound" class="select-limit" style="width: 120px; padding: 6px;">
+                <select id="selEffectRound" class="select-limit" style="width: 130px; padding: 6px;">
+                    <option value="ALL" selected>全ラウンド共通</option>
                     <option value="Alternate">オルタネイト</option>
                     <option value="Midnight">ミッドナイト</option>
+                    <option value="Unbound">アンバウンド</option>
                     <option value="Fog">霧</option>
                     <option value="Ghost">ゴースト</option>
-                    <option value="Unbound" selected>アンバウンド</option>
                 </select>
                 <input type="text" id="txtEffectTerror" class="input-text-dark" placeholder="テラー名" style="flex: 1;">
                 
@@ -720,7 +733,7 @@
 
     const BLOCK_LIST = ["parhelion's victims", "tbh", "withered bonnie"];
     const EXCLUSION_MAP = { "Faker": ["Sonic", "Sanic"], "Shadow Evil Purple Foxy": ["Sanic"] };
-    const ROUND_NAME_MAP = { "Alternate": "オルタネイト", "Midnight": "ミッドナイト", "Unbound": "アンバウンド", "Fog": "霧", "Ghost": "ゴースト", "Cold Night": "コールドナイト" };
+    const ROUND_NAME_MAP = { "ALL": "全ラウンド共通", "Alternate": "オルタネイト", "Midnight": "ミッドナイト", "Unbound": "アンバウンド", "Fog": "霧", "Ghost": "ゴースト", "Cold Night": "コールドナイト" };
     const tagNamesMap = { 
         'emeco': 'エメコ', 'pot': '壺', 'stun': 'スタンします', 'chase': 'チェイスします', 
         'survive': '生存希望', 'evo_alt': 'オルタ進化', 'evo_blood': 'ブラバ進化', 'evo_mid': 'ミッド進化',
@@ -847,6 +860,14 @@
         if (savedPlayerName) { elements.myPlayerNameInput.value = savedPlayerName; }
         
         elements.numMaxHistory.value = maxHistorySave;
+
+        // Enterキーでそのまま演出を登録できるようにフック
+        if(elements.txtEffectTerror) {
+            elements.txtEffectTerror.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') { e.preventDefault(); addCustomEffect(); }
+            });
+        }
+
         renderMasterTags(); renderCustomEffects();
     }
 
@@ -862,17 +883,10 @@
     function saveSession() {
         if (!isInRoom) return;
         localStorage.setItem('ton_session', JSON.stringify({
-            roomId: currentRoomName,
-            type: currentRoomType,
-            pwd: currentRoomPassword,
-            isHost: isHost,
-            anon: localPlayerInfo.isAnonymous
+            roomId: currentRoomName, type: currentRoomType, pwd: currentRoomPassword, isHost: isHost, anon: localPlayerInfo.isAnonymous
         }));
     }
-
-    function clearSession() {
-        localStorage.removeItem('ton_session');
-    }
+    function clearSession() { localStorage.removeItem('ton_session'); }
 
     window.onload = () => {
         const savedSession = localStorage.getItem('ton_session');
@@ -894,159 +908,87 @@
             if (!validatePlayerName()) return;
             
             if (data.isHost) {
-                elements.createRoomType.value = data.type;
-                elements.createPassword.value = data.pwd || "";
-                createRoom(true, data.roomId);
+                elements.createRoomType.value = data.type; elements.createPassword.value = data.pwd || ""; createRoom(true, data.roomId);
             } else {
                 if (data.type === 'public') {
-                    let searchId = data.roomId.replace("ton_pub_", "");
-                    elements.searchInstanceId.value = searchId;
-                    joinOpenRoom(true, data.roomId);
+                    let searchId = data.roomId.replace("ton_pub_", ""); elements.searchInstanceId.value = searchId; joinOpenRoom(true, data.roomId);
                 } else {
-                    elements.joinRoomName.value = data.roomId;
-                    elements.joinPassword.value = data.pwd || "";
-                    joinRoom(false, data.roomId, data.pwd);
+                    elements.joinRoomName.value = data.roomId; elements.joinPassword.value = data.pwd || ""; joinRoom(false, data.roomId, data.pwd);
                 }
             }
-        } else {
-            clearSession();
-        }
+        } else { clearSession(); }
     }
 
     function validatePlayerName() {
         const rawName = elements.myPlayerNameInput.value.trim();
         if(!rawName) { alert("ユーザー名を入力してください。"); return false; }
-        const parts = rawName.split('#');
-        localPlayerName = parts[0];
-        if (localPlayerName === "犬峰ゆた" && parts[1] === "cReaR0r202") {
-            localVrcId = AUTHOR_ID;
-        } else {
-            localVrcId = "guest_" + Math.random().toString(36).substr(2, 9);
-        }
-        localStorage.setItem('ton_multi_player_name', rawName);
-        return true;
+        const parts = rawName.split('#'); localPlayerName = parts[0];
+        if (localPlayerName === "犬峰ゆた" && parts[1] === "cReaR0r202") { localVrcId = AUTHOR_ID; } 
+        else { localVrcId = "guest_" + Math.random().toString(36).substr(2, 9); }
+        localStorage.setItem('ton_multi_player_name', rawName); return true;
     }
 
-    // --- IDサニタイズ処理 ---
     function sanitizeInstanceIdForPeer(rawStr) {
         if(!rawStr || rawStr === "未接続") return null;
-        let safe = rawStr.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-        return safe;
+        return rawStr.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
     }
 
     function switchMultiTab(tabType) {
-        elements.tabCreate.classList.remove('active');
-        elements.tabJoin.classList.remove('active');
-        elements.tabOpenSearch.classList.remove('active');
-        elements.multiCreateSection.style.display = 'none';
-        elements.multiJoinSection.style.display = 'none';
-        elements.multiOpenSection.style.display = 'none';
+        elements.tabCreate.classList.remove('active'); elements.tabJoin.classList.remove('active'); elements.tabOpenSearch.classList.remove('active');
+        elements.multiCreateSection.style.display = 'none'; elements.multiJoinSection.style.display = 'none'; elements.multiOpenSection.style.display = 'none';
 
-        if (tabType === 'create') {
-            elements.tabCreate.classList.add('active');
-            elements.multiCreateSection.style.display = 'block';
-        } else if (tabType === 'join') {
-            elements.tabJoin.classList.add('active');
-            elements.multiJoinSection.style.display = 'block';
-        } else if (tabType === 'open') {
-            elements.tabOpenSearch.classList.add('active');
-            elements.multiOpenSection.style.display = 'block';
-            fillCurrentInstance();
-        }
+        if (tabType === 'create') { elements.tabCreate.classList.add('active'); elements.multiCreateSection.style.display = 'block'; } 
+        else if (tabType === 'join') { elements.tabJoin.classList.add('active'); elements.multiJoinSection.style.display = 'block'; } 
+        else if (tabType === 'open') { elements.tabOpenSearch.classList.add('active'); elements.multiOpenSection.style.display = 'block'; fillCurrentInstance(); }
     }
 
     function toggleCreatePassword() {
-        if (elements.createRoomType.value === 'public') {
-            elements.createPasswordGroup.style.display = 'none';
-            elements.createPassword.value = '';
-        } else {
-            elements.createPasswordGroup.style.display = 'block';
-        }
+        if (elements.createRoomType.value === 'public') { elements.createPasswordGroup.style.display = 'none'; elements.createPassword.value = ''; } 
+        else { elements.createPasswordGroup.style.display = 'block'; }
     }
 
     function fillCurrentInstance() {
-        if (currentInstanceRawString !== "未接続" && currentInstanceRawString !== "") {
-            elements.searchInstanceId.value = currentInstanceRawString;
-        }
+        if (currentInstanceRawString !== "未接続" && currentInstanceRawString !== "") { elements.searchInstanceId.value = currentInstanceRawString; }
     }
 
     function enterRoomUI(roomId, type, pwd) {
-        isInRoom = true;
-        currentRoomName = roomId;
-        currentRoomType = type;
-        currentRoomPassword = pwd;
-        multiSessionSurvival = 0;
-        sessionStreak = 0;
-        maxStreak = 0;
-        localPlayerInfo.survivalCount = 0;
-        localPlayerInfo.sessionStreak = 0;
-        localPlayerInfo.maxStreak = 0;
-        elements.myTagSelect.value = "none";
-        localPlayerInfo.tag = "none";
+        isInRoom = true; currentRoomName = roomId; currentRoomType = type; currentRoomPassword = pwd; multiSessionSurvival = 0; sessionStreak = 0; maxStreak = 0;
+        localPlayerInfo.survivalCount = 0; localPlayerInfo.sessionStreak = 0; localPlayerInfo.maxStreak = 0; elements.myTagSelect.value = "none"; localPlayerInfo.tag = "none";
         
         let displayStr = type === 'public' ? "オープン部屋 (ID連携)" : "Room ID: " + roomId.substring(0, 8) + "...";
-        elements.displayRoomName.textContent = displayStr;
-        elements.multiplayerPanel.style.display = "block";
+        elements.displayRoomName.textContent = displayStr; elements.multiplayerPanel.style.display = "block";
         elements.btnCopyInvite.style.display = type === 'private' ? "inline-block" : "none";
-        
-        // 別枠表示ロジック（ゲストのみ表示）
-        if (!isHost) {
-            elements.roomSharedDataCard.style.display = "block";
-        } else {
-            elements.roomSharedDataCard.style.display = "none";
-        }
-
+        elements.roomSharedDataCard.style.display = !isHost ? "block" : "none";
         toggleModal('multiplayerModal', false);
         
-        if(type === 'public') {
-            elements.multiPrivateContent.style.display = "none";
-            elements.multiPublicContent.style.display = "block";
-        } else {
-            elements.multiPrivateContent.style.display = "block";
-            elements.multiPublicContent.style.display = "none";
-        }
+        if(type === 'public') { elements.multiPrivateContent.style.display = "none"; elements.multiPublicContent.style.display = "block"; } 
+        else { elements.multiPrivateContent.style.display = "block"; elements.multiPublicContent.style.display = "none"; }
         saveSession();
     }
 
     function createRoom(isRecovery = false, forceId = null) {
         if(!isRecovery && !validatePlayerName()) return;
-        
-        const type = elements.createRoomType.value;
-        const pwd = elements.createPassword.value.trim();
-        
+        const type = elements.createRoomType.value; const pwd = elements.createPassword.value.trim();
         let desiredPeerId = forceId;
         if (!isRecovery) {
             if (type === 'public') {
                 let safeId = sanitizeInstanceIdForPeer(currentInstanceRawString);
                 if (!safeId) { alert("インスタンスに接続してからオープン部屋を作成してください。"); return; }
                 desiredPeerId = "ton_pub_" + safeId;
-            } else {
-                if(!pwd) { alert("鍵部屋を作成するにはパスワードを設定してください。"); return; }
-            }
+            } else { if(!pwd) { alert("鍵部屋を作成するにはパスワードを設定してください。"); return; } }
         }
         
-        let btn = null;
-        let originalText = "";
-        if (!isRecovery) {
-            btn = document.querySelector('#multiCreateSection .btn-action');
-            if(btn) { originalText = btn.textContent; btn.textContent = "部屋を作成中..."; btn.disabled = true; }
-        }
+        let btn = null; let originalText = "";
+        if (!isRecovery) { btn = document.querySelector('#multiCreateSection .btn-action'); if(btn) { originalText = btn.textContent; btn.textContent = "部屋を作成中..."; btn.disabled = true; } }
 
         if(peer) peer.destroy();
         peer = desiredPeerId ? new Peer(desiredPeerId) : new Peer(); 
         
         peer.on('open', (id) => {
             if(btn) { btn.textContent = originalText; btn.disabled = false; }
-            isHost = true;
-            localPlayerInfo.vrcId = localVrcId;
-            localPlayerInfo.name = localPlayerName;
-            localPlayerInfo.isHost = true;
-            localPlayerInfo.isAnonymous = false;
-            localPlayerInfo.isAlive = !currentRoundData.isDead;
-            roomPlayers = [{ peerId: id, info: localPlayerInfo }];
-            connections = [];
-            enterRoomUI(id, type, pwd);
-            broadcastRoomState();
+            isHost = true; localPlayerInfo.vrcId = localVrcId; localPlayerInfo.name = localPlayerName; localPlayerInfo.isHost = true;
+            localPlayerInfo.isAnonymous = false; localPlayerInfo.isAlive = !currentRoundData.isDead;
+            roomPlayers = [{ peerId: id, info: localPlayerInfo }]; connections = []; enterRoomUI(id, type, pwd); broadcastRoomState();
         });
         
         peer.on('error', (err) => {
@@ -1059,73 +1001,38 @@
             conn.on('open', () => {
                 if(currentRoomType === 'private') {
                     if(conn.metadata.password !== currentRoomPassword) {
-                        conn.send({ type: "ERROR", message: "パスワードが違います" });
-                        setTimeout(() => conn.close(), 500);
-                        return;
+                        conn.send({ type: "ERROR", message: "パスワードが違います" }); setTimeout(() => conn.close(), 500); return;
                     }
                 }
-                connections.push(conn);
-                roomPlayers.push({ peerId: conn.peer, info: conn.metadata.playerInfo });
-                broadcastRoomState();
-
-                // --- 途中参加者へのフルデータ同期 (オルタ履歴のみ) ---
-                conn.send({
-                    type: "SYNC_FULL_STATE",
-                    altHistory: altHistory,
-                    trackerState: trackerState
-                });
+                connections.push(conn); roomPlayers.push({ peerId: conn.peer, info: conn.metadata.playerInfo }); broadcastRoomState();
+                conn.send({ type: "SYNC_FULL_STATE", altHistory: altHistory, trackerState: trackerState });
             });
             conn.on('data', (data) => handleNetworkDataHost(conn.peer, data));
-            conn.on('close', () => {
-                connections = connections.filter(c => c !== conn);
-                roomPlayers = roomPlayers.filter(p => p.peerId !== conn.peer);
-                broadcastRoomState();
-            });
+            conn.on('close', () => { connections = connections.filter(c => c !== conn); roomPlayers = roomPlayers.filter(p => p.peerId !== conn.peer); broadcastRoomState(); });
         });
     }
 
     function joinRoom(isOpenRoom, forceId = null, forcePwd = null) {
         if(!forceId && !validatePlayerName()) return;
-        
-        let targetId = forceId;
-        let pwd = forcePwd !== null ? forcePwd : "";
-        let anon = isOpenRoom; // オープン部屋は常に匿名化
+        let targetId = forceId; let pwd = forcePwd !== null ? forcePwd : ""; let anon = isOpenRoom;
 
         if (!targetId) {
             if (isOpenRoom) {
                 let instanceId = elements.searchInstanceId.value.trim();
                 if(!instanceId) { alert("検索するインスタンスIDを入力してください。"); return; }
-                let safeId = sanitizeInstanceIdForPeer(instanceId);
-                targetId = "ton_pub_" + safeId;
-            } else {
-                targetId = elements.joinRoomName.value.trim();
-                pwd = elements.joinPassword.value.trim();
-                if(!targetId) { alert("参加する部屋IDを入力してください。"); return; }
-            }
+                let safeId = sanitizeInstanceIdForPeer(instanceId); targetId = "ton_pub_" + safeId;
+            } else { targetId = elements.joinRoomName.value.trim(); pwd = elements.joinPassword.value.trim(); if(!targetId) { alert("参加する部屋IDを入力してください。"); return; } }
         }
 
-        localPlayerInfo.vrcId = localVrcId;
-        localPlayerInfo.name = localPlayerName;
-        localPlayerInfo.isHost = false;
-        localPlayerInfo.isAnonymous = anon;
-        localPlayerInfo.isAlive = !currentRoundData.isDead;
+        localPlayerInfo.vrcId = localVrcId; localPlayerInfo.name = localPlayerName; localPlayerInfo.isHost = false; localPlayerInfo.isAnonymous = anon; localPlayerInfo.isAlive = !currentRoundData.isDead;
 
-        let btn = null;
-        let originalText = "";
-        if (!forceId) {
-            btn = isOpenRoom ? document.querySelector('#multiOpenSection .btn-action') : document.querySelector('#multiJoinSection .btn-action');
-            if(btn) { originalText = btn.textContent; btn.textContent = "接続中..."; btn.disabled = true; }
-        }
+        let btn = null; let originalText = "";
+        if (!forceId) { btn = isOpenRoom ? document.querySelector('#multiOpenSection .btn-action') : document.querySelector('#multiJoinSection .btn-action'); if(btn) { originalText = btn.textContent; btn.textContent = "接続中..."; btn.disabled = true; } }
 
-        if(peer) peer.destroy();
-        peer = new Peer();
+        if(peer) peer.destroy(); peer = new Peer();
         peer.on('open', (id) => {
             hostConnection = peer.connect(targetId, { metadata: { password: pwd, playerInfo: localPlayerInfo } });
-            hostConnection.on('open', () => {
-                if(btn) { btn.textContent = originalText; btn.disabled = false; }
-                isHost = false;
-                enterRoomUI(targetId, isOpenRoom ? 'public' : 'private', pwd);
-            });
+            hostConnection.on('open', () => { if(btn) { btn.textContent = originalText; btn.disabled = false; } isHost = false; enterRoomUI(targetId, isOpenRoom ? 'public' : 'private', pwd); });
             hostConnection.on('data', (data) => handleNetworkDataClient(data));
             hostConnection.on('close', () => { alert("ホストから切断されました。"); leaveRoom(); });
         });
@@ -1142,13 +1049,9 @@
     function leaveRoom() {
         if(peer) { peer.destroy(); peer = null; }
         isInRoom = false; isHost = false; hostConnection = null; connections = []; roomPlayers = [];
-        elements.multiplayerPanel.style.display = "none";
-        elements.roomSharedDataCard.style.display = "none";
-        
-        roomAltHistory = [];
-        roomTrackerState = { mystic: false, twilight: false, blood: false, solstice: false, bigBird: false, punishingBird: false, judgementBird: false };
-        updateRoomSharedUI();
-        clearSession();
+        elements.multiplayerPanel.style.display = "none"; elements.roomSharedDataCard.style.display = "none";
+        roomAltHistory = []; roomTrackerState = { mystic: false, twilight: false, blood: false, solstice: false, bigBird: false, punishingBird: false, judgementBird: false };
+        updateRoomSharedUI(); clearSession();
     }
 
     function sendToNetwork(data) {
@@ -1159,174 +1062,90 @@
 
     function broadcastRoomState() {
         if(!isHost) return;
-        const state = { players: roomPlayers.map(p => p.info) };
-        sendToNetwork({ type: "ROOM_STATE_UPDATE", state: state });
-        renderMultiplayerState(state); 
+        const state = { players: roomPlayers.map(p => p.info) }; sendToNetwork({ type: "ROOM_STATE_UPDATE", state: state }); renderMultiplayerState(state); 
     }
 
     function handleNetworkDataHost(peerId, data) {
-        if (data.type === "UPDATE_TAG") {
-            let p = roomPlayers.find(p => p.peerId === peerId);
-            if (p) { p.info.tag = data.tag; broadcastRoomState(); }
-        } else if (data.type === "ALIVE_STATE") {
-            let p = roomPlayers.find(p => p.peerId === peerId);
-            if (p) { p.info.isAlive = data.isAlive; broadcastRoomState(); }
-        } else if (data.type === "UPDATE_STATS") {
-            let p = roomPlayers.find(p => p.peerId === peerId);
-            if (p) { p.info.survivalCount = data.survivalCount; p.info.sessionStreak = data.sessionStreak; p.info.maxStreak = data.maxStreak; broadcastRoomState(); }
-        } else if (data.type === "SYNC_ENVIRONMENT" || data.type === "SYNC_HISTORY" || data.type === "SYNC_ROUND" || data.type === "SYNC_TERRORS") {
-            // ホストは受け取っても何もしない（自分が発信元であるべき）
-        }
+        if (data.type === "UPDATE_TAG") { let p = roomPlayers.find(p => p.peerId === peerId); if (p) { p.info.tag = data.tag; broadcastRoomState(); } } 
+        else if (data.type === "ALIVE_STATE") { let p = roomPlayers.find(p => p.peerId === peerId); if (p) { p.info.isAlive = data.isAlive; broadcastRoomState(); } } 
+        else if (data.type === "UPDATE_STATS") { let p = roomPlayers.find(p => p.peerId === peerId); if (p) { p.info.survivalCount = data.survivalCount; p.info.sessionStreak = data.sessionStreak; p.info.maxStreak = data.maxStreak; broadcastRoomState(); } }
     }
 
     function handleNetworkDataClient(data) {
         if (data.type === "ERROR") { alert(data.message); leaveRoom(); }
         else if (data.type === "ROOM_STATE_UPDATE") renderMultiplayerState(data.state);
-        // --- 別枠データの処理 ---
-        else if (data.type === "SYNC_FULL_STATE") {
-            roomAltHistory = data.altHistory || [];
-            roomTrackerState = data.trackerState || roomTrackerState;
-            updateRoomSharedUI();
-        }
-        else if (data.type === "SYNC_HISTORY") {
-            // 受信した履歴が「オルタ・特殊」判定を持っていれば追加
-            if (data.log && data.log.isAlt) {
-                roomAltHistory.unshift(data.log);
-                if (roomAltHistory.length > 50) roomAltHistory.pop();
-                updateRoomSharedUI();
-            }
-        }
-        else if (data.type === "SYNC_ENVIRONMENT") {
-            roomTrackerState = { ...roomTrackerState, ...data.tracker };
-            updateRoomSharedUI();
-        }
-        else if (data.type === "SYNC_ROUND") { 
-            // 共有情報のUI用
-            checkShopWarningNeeds(data.roundType); 
-        }
+        else if (data.type === "SYNC_FULL_STATE") { roomAltHistory = data.altHistory || []; roomTrackerState = data.trackerState || roomTrackerState; updateRoomSharedUI(); }
+        else if (data.type === "SYNC_HISTORY") { if (data.log && data.log.isAlt) { roomAltHistory.unshift(data.log); if (roomAltHistory.length > 50) roomAltHistory.pop(); updateRoomSharedUI(); } }
+        else if (data.type === "SYNC_ENVIRONMENT") { roomTrackerState = { ...roomTrackerState, ...data.tracker }; updateRoomSharedUI(); }
+        else if (data.type === "SYNC_ROUND") { checkShopWarningNeeds(data.roundType); }
     }
 
     function updateRoomSharedUI() {
         if (!isInRoom || isHost) return;
-        
-        // ランプ更新
-        document.getElementById('rLampMystic').classList.toggle('active', roomTrackerState.mystic);
-        document.getElementById('rLampTwilight').classList.toggle('active', roomTrackerState.twilight);
-        document.getElementById('rLampBlood').classList.toggle('active', roomTrackerState.blood);
-        document.getElementById('rLampSolstice').classList.toggle('active', roomTrackerState.solstice);
-        document.getElementById('rLampBigBird').classList.toggle('active', roomTrackerState.bigBird);
-        document.getElementById('rLampPunishingBird').classList.toggle('active', roomTrackerState.punishingBird);
+        document.getElementById('rLampMystic').classList.toggle('active', roomTrackerState.mystic); document.getElementById('rLampTwilight').classList.toggle('active', roomTrackerState.twilight);
+        document.getElementById('rLampBlood').classList.toggle('active', roomTrackerState.blood); document.getElementById('rLampSolstice').classList.toggle('active', roomTrackerState.solstice);
+        document.getElementById('rLampBigBird').classList.toggle('active', roomTrackerState.bigBird); document.getElementById('rLampPunishingBird').classList.toggle('active', roomTrackerState.punishingBird);
         document.getElementById('rLampJudgementBird').classList.toggle('active', roomTrackerState.judgementBird);
         
-        // オルタ限定履歴テーブル更新
         elements.roomAltHistoryBody.innerHTML = "";
-        if (roomAltHistory.length === 0) {
-            elements.roomAltHistoryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">共有された特殊記録はありません</td></tr>';
-            return;
-        }
-        
+        if (roomAltHistory.length === 0) { elements.roomAltHistoryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">共有された特殊記録はありません</td></tr>'; return; }
         roomAltHistory.slice(0, 30).forEach((item) => {
-            const row = document.createElement('tr'); 
-            const typeLower = item.type ? item.type.toLowerCase() : "";
+            const row = document.createElement('tr'); const typeLower = item.type ? item.type.toLowerCase() : "";
             let typeHtml = `<span class="terror-midnight">${item.type}</span>`;
             if (typeLower.includes("alternate")) typeHtml = `<span class="terror-alt">${item.type}</span>`;
             else if (typeLower.includes("cold night")) typeHtml = `<span class="terror-cold">${item.type}</span>`;
-
-            row.innerHTML = `<td>${item.time}</td><td>${typeHtml}</td><td>${formatTerrorsForTable(item.terrors)}</td>`;
-            elements.roomAltHistoryBody.appendChild(row);
+            row.innerHTML = `<td>${item.time}</td><td>${typeHtml}</td><td>${formatTerrorsForTable(item.terrors)}</td>`; elements.roomAltHistoryBody.appendChild(row);
         });
     }
 
     function updateMyTag() {
         if(!isInRoom || currentRoomType === 'public') return;
-        const tag = elements.myTagSelect.value;
-        localPlayerInfo.tag = tag;
-        if (isHost) {
-            let p = roomPlayers.find(p => p.peerId === peer.id);
-            if(p) p.info.tag = tag;
-            broadcastRoomState();
-        } else {
-            sendToNetwork({ type: "UPDATE_TAG", tag: tag });
-        }
+        const tag = elements.myTagSelect.value; localPlayerInfo.tag = tag;
+        if (isHost) { let p = roomPlayers.find(p => p.peerId === peer.id); if(p) p.info.tag = tag; broadcastRoomState(); } 
+        else { sendToNetwork({ type: "UPDATE_TAG", tag: tag }); }
     }
 
     function forceRespawn() {
         if(!isInRoom || currentRoomType === 'public') return;
         if(!confirm("任意リスポーンを宣言し、死亡扱いとしてチームに共有しますか？")) return;
-        currentRoundData.isDead = true; 
-        localPlayerInfo.isAlive = false;
-        sessionStreak = 0;
-        localPlayerInfo.sessionStreak = 0;
-        if (isHost) {
-            let p = roomPlayers.find(p => p.peerId === peer.id);
-            if(p) { p.info.isAlive = false; p.info.sessionStreak = 0; }
-            broadcastRoomState();
-        } else {
-            sendToNetwork({ type: "ALIVE_STATE", isAlive: false });
-            sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: 0, maxStreak: localPlayerInfo.maxStreak });
-        }
+        currentRoundData.isDead = true; localPlayerInfo.isAlive = false; sessionStreak = 0; localPlayerInfo.sessionStreak = 0;
+        if (isHost) { let p = roomPlayers.find(p => p.peerId === peer.id); if(p) { p.info.isAlive = false; p.info.sessionStreak = 0; } broadcastRoomState(); } 
+        else { sendToNetwork({ type: "ALIVE_STATE", isAlive: false }); sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: 0, maxStreak: localPlayerInfo.maxStreak }); }
     }
 
     function renderMultiplayerState(state) {
-        const renderList = state.players || [];
-        elements.playerListContainer.innerHTML = '';
-        let totalAlive = 0; let validPlayers = 0; const tagCounts = {};
-        
-        let maxBestInRoom = 0;
-        let currentBestInRoom = 0;
-        renderList.forEach(p => { 
-            if (!p.isAnonymous) {
-                if (p.maxStreak > maxBestInRoom) maxBestInRoom = p.maxStreak;
-                if (p.sessionStreak > currentBestInRoom) currentBestInRoom = p.sessionStreak;
-            }
-        });
+        const renderList = state.players || []; elements.playerListContainer.innerHTML = '';
+        let totalAlive = 0; let validPlayers = 0; const tagCounts = {}; let maxBestInRoom = 0; let currentBestInRoom = 0;
+        renderList.forEach(p => { if (!p.isAnonymous) { if (p.maxStreak > maxBestInRoom) maxBestInRoom = p.maxStreak; if (p.sessionStreak > currentBestInRoom) currentBestInRoom = p.sessionStreak; } });
 
         renderList.forEach(player => {
             if (player.isAnonymous) return;
-            const li = document.createElement('li');
-            li.className = `player-item ${!player.isAlive ? 'dead' : ''}`;
-            
-            let hostMark = player.isHost ? '<span class="host-mark">⭐</span>' : '';
-            let isAuthor = (player.vrcId === AUTHOR_ID);
-            
-            let hasMaxCrown = (player.maxStreak > 0 && player.maxStreak === maxBestInRoom);
-            let hasCurrentFire = (player.sessionStreak > 0 && player.sessionStreak === currentBestInRoom);
+            const li = document.createElement('li'); li.className = `player-item ${!player.isAlive ? 'dead' : ''}`;
+            let hostMark = player.isHost ? '<span class="host-mark">⭐</span>' : ''; let isAuthor = (player.vrcId === AUTHOR_ID);
+            let hasMaxCrown = (player.maxStreak > 0 && player.maxStreak === maxBestInRoom); let hasCurrentFire = (player.sessionStreak > 0 && player.sessionStreak === currentBestInRoom);
 
-            let crownHtml = hasMaxCrown ? `<span class="streak-crown">👑</span>` : '';
-            let fireHtml = hasCurrentFire ? `<span class="streak-fire">🔥</span>` : '';
+            let crownHtml = hasMaxCrown ? `<span class="streak-crown">👑</span>` : ''; let fireHtml = hasCurrentFire ? `<span class="streak-fire">🔥</span>` : '';
             let currHighlightClass = hasCurrentFire ? 'current-streak-highlight' : '';
 
-            // 名前の隣に王冠と炎を配置
             let nameContent = `<span class="player-name">${player.name}</span>`;
-            if (isAuthor) {
-                nameContent = `<span class="dev-badge">🛠️ Creator</span> <span class="player-name" style="background: var(--dev-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:bold;">${player.name}</span>`;
-            }
+            if (isAuthor) { nameContent = `<span class="dev-badge">🛠️ Creator</span> <span class="player-name" style="background: var(--dev-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:bold;">${player.name}</span>`; }
             nameContent += `${crownHtml}${fireHtml}`;
             
             let statsStr = `<span style="color:var(--text-muted); font-size:0.8rem;">[生還:${player.survivalCount || 0} | 最高:<span style="color:#fff;">${player.maxStreak || 0}</span> | <span class="${currHighlightClass}">現在:${player.sessionStreak || 0}</span>]</span>`;
-            
             let tagDisplay = player.tag !== 'none' ? `<span style="color:var(--info); font-size:0.8rem;">[${tagNamesMap[player.tag] || player.tag}]</span>` : '';
             
-            li.innerHTML = `<div class="player-info">${hostMark} ${statsStr} ${nameContent}</div><div>${tagDisplay}</div>`;
-            elements.playerListContainer.appendChild(li);
-            
+            li.innerHTML = `<div class="player-info">${hostMark} ${statsStr} ${nameContent}</div><div>${tagDisplay}</div>`; elements.playerListContainer.appendChild(li);
             if (player.tag !== 'afk') { validPlayers++; if (player.isAlive) totalAlive++; }
             if (player.tag !== 'none' && player.tag !== 'afk') { tagCounts[player.tag] = (tagCounts[player.tag] || 0) + 1; }
         });
         
-        const rate = validPlayers > 0 ? Math.floor((totalAlive / validPlayers) * 100) : 0;
-        elements.teamSurvivalRate.textContent = `${rate}%`;
+        const rate = validPlayers > 0 ? Math.floor((totalAlive / validPlayers) * 100) : 0; elements.teamSurvivalRate.textContent = `${rate}%`;
         elements.tagSummaryContainer.innerHTML = '';
-        for (const [tag, count] of Object.entries(tagCounts)) {
-            const badge = document.createElement('div'); badge.className = 'tag-badge';
-            badge.textContent = `${tagNamesMap[tag] || tag}: ${count}人`;
-            elements.tagSummaryContainer.appendChild(badge);
-        }
+        for (const [tag, count] of Object.entries(tagCounts)) { const badge = document.createElement('div'); badge.className = 'tag-badge'; badge.textContent = `${tagNamesMap[tag] || tag}: ${count}人`; elements.tagSummaryContainer.appendChild(badge); }
     }
     
     function copyInviteInfo() {
-        if(!isInRoom) return;
-        const typeStr = currentRoomType === 'private' ? "鍵部屋" : "オープン部屋";
+        if(!isInRoom) return; const typeStr = currentRoomType === 'private' ? "鍵部屋" : "オープン部屋";
         const inviteText = `【ToN マルチプレイ連携】\n部屋ID: ${currentRoomName}\nパスワード: ${currentRoomPassword || 'なし'}\n（${typeStr}）\n※ツールから「部屋に参加」タブを開いて入力してください。`;
         navigator.clipboard.writeText(inviteText);
     }
@@ -1379,23 +1198,42 @@
     }
 
     function addCustomEffect() {
-        const round = elements.selEffectRound.value; const terror = elements.txtEffectTerror.value.trim(); const color = elements.txtEffectColorHex.value; 
-        if (!terror) return; if (!/^#[0-9A-Fa-f]{6}$/i.test(color)) return;
-        customEffects.push({ roundType: round, terror: terror, color: color });
-        elements.txtEffectTerror.value = ""; elements.colEffectColor.value = "#ff4757"; elements.txtEffectColorHex.value = "#ff4757"; saveLogs(); renderCustomEffects();
+        const round = elements.selEffectRound.value; const terror = elements.txtEffectTerror.value.trim(); let color = elements.txtEffectColorHex.value.trim(); 
+        if (!terror) { alert("演出をつけたいテラー名を入力してください。"); return; }
+        
+        if (/^#[0-9A-Fa-f]{3}$/i.test(color)) { color = '#' + color[1]+color[1] + color[2]+color[2] + color[3]+color[3]; } 
+        else if (!/^#[0-9A-Fa-f]{6}$/i.test(color)) { color = elements.colEffectColor.value; }
+
+        const existingIdx = customEffects.findIndex(e => e.terror.toLowerCase() === terror.toLowerCase() && e.roundType === round);
+        if (existingIdx !== -1) { customEffects[existingIdx].color = color; } 
+        else { customEffects.push({ roundType: round, terror: terror, color: color }); }
+
+        elements.txtEffectTerror.value = ""; saveLogs(); renderCustomEffects();
+
+        const btn = document.querySelector('.btn-add-master');
+        if (btn) {
+            const orig = btn.textContent; btn.textContent = "登録完了!"; btn.style.background = "var(--success)"; btn.style.color = "#000";
+            setTimeout(() => { btn.textContent = orig; btn.style.background = "var(--info)"; btn.style.color = "#fff"; }, 1200);
+        }
     }
 
     function testCustomEffect(colorCode) {
         isTestingEffect = true; document.body.style.setProperty('--special-color', colorCode); document.body.classList.add('special-border');
         clearTimeout(testEffectTimeout); testEffectTimeout = setTimeout(() => { isTestingEffect = false; checkSpecialEffect(); }, 3000);
     }
+
     function checkSpecialEffect() {
         if (isTestingEffect) return; 
         if (!currentRoundData.active) { document.body.classList.remove('special-border'); return; }
-        const typeLower = currentRoundData.type.toLowerCase(); const terrors = Array.from(activeTerrorSet).map(t => t.toLowerCase());
+        const typeLower = currentRoundData.type.toLowerCase(); const terrors = Array.from(activeTerrorSet).map(t => t.trim().toLowerCase());
         let isSpecial = false; let specialColor = '';
+
         for (const eff of customEffects) {
-            if (typeLower.includes(eff.roundType.toLowerCase()) && terrors.includes(eff.terror.toLowerCase())) { isSpecial = true; specialColor = eff.color; break; }
+            const regTerror = eff.terror.trim().toLowerCase();
+            const matchTerror = terrors.some(t => t === regTerror || t.includes(regTerror) || regTerror.includes(t));
+            const matchRound = (eff.roundType === "ALL" || typeLower.includes(eff.roundType.toLowerCase()));
+
+            if (matchRound && matchTerror) { isSpecial = true; specialColor = eff.color; break; }
         }
         if (isSpecial) { document.body.style.setProperty('--special-color', specialColor); document.body.classList.add('special-border'); } 
         else { document.body.classList.remove('special-border'); }
@@ -1477,22 +1315,30 @@
         const cleanedName = cleanTerrorName(terrorName, currentRoundData.type);
         if(!cleanedName || cleanedName === "不明なテラー" || cleanedName === "探索中...") return;
         currentSelectedMemoTerror = cleanedName; 
-        if(elements.memoModalTitle) {
-            elements.memoModalTitle.textContent = `【${cleanedName}】`;
-        }
+        if(elements.memoModalTitle) { elements.memoModalTitle.textContent = `【${cleanedName}】`; }
         
-        // --- Wikiリンク エラー・例外対応 ---
+        // --- Wikiリンク 例外マッピング ---
         const toTitleCase = (str) => {
             let lower = str.toLowerCase().trim();
-            // 特殊なURL変換が必要なものはここでハードコード
-            if (lower === "pov: bug" || lower === "pov : bug" || lower === "pov:bug") return "POV Bug";
-            if (lower === "copyright infringement") return "Copyright infringement";
-            
-            const exceptions = { 
+            const exactMap = {
+                "pov: bug": "POV Bug",
+                "pov : bug": "POV Bug",
+                "copyright infringement": "Copyright infringement",
+                "[lesser censored]": "LESSER CENSORED",
+                "lesser censored": "LESSER CENSORED",
+                "red vs blue": "Red vs Blue",
+                ".;.[;.;[..;[';'/.[]'];']/'=.];';[;-=].-=/;-=;][;-=/;'./=-;.": "face",
+                "pack of wild yet curious creatures": "Pack of Wild Yet Curious Creatures",
                 "her": "HER", "mx": "MX", "bff": "BFF", "censored": "CENSORED"
             };
-            if (exceptions[lower]) return exceptions[lower];
-            return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            if (exactMap[lower]) return exactMap[lower];
+
+            const keepLower = ["of", "the", "in", "and", "vs", "to", "a", "at", "for"];
+            return str.split(' ').map((word, idx) => {
+                let wLower = word.toLowerCase();
+                if (idx > 0 && keepLower.includes(wLower)) return wLower;
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }).join(' ');
         };
         
         if(elements.btnWikiSearch) {
@@ -1602,9 +1448,7 @@
         if (currentRoundData.active && c !== "") {
             activeTerrorSet.add(c);
             let hasRealTerror = Array.from(activeTerrorSet).some(t => !/^[?？]+$/.test(t));
-            if (hasRealTerror) {
-                activeTerrorSet.delete("???");
-            }
+            if (hasRealTerror) { activeTerrorSet.delete("???"); }
         }
         parseGameEvents(rawName, currentRoundData.type);
     }
@@ -1716,46 +1560,32 @@
         
         if (isInRoom) {
             if (!currentRoundData.isDead) {
-                multiSessionSurvival++;
-                sessionStreak++;
-                if (sessionStreak > maxStreak) maxStreak = sessionStreak;
-            } else {
-                sessionStreak = 0;
-            }
+                multiSessionSurvival++; sessionStreak++; if (sessionStreak > maxStreak) maxStreak = sessionStreak;
+            } else { sessionStreak = 0; }
 
-            localPlayerInfo.survivalCount = multiSessionSurvival;
-            localPlayerInfo.sessionStreak = sessionStreak;
-            localPlayerInfo.maxStreak = maxStreak;
+            localPlayerInfo.survivalCount = multiSessionSurvival; localPlayerInfo.sessionStreak = sessionStreak; localPlayerInfo.maxStreak = maxStreak;
 
             if (isHost) {
                 let p = roomPlayers.find(p => p.peerId === peer.id);
                 if(p) { p.info.survivalCount = localPlayerInfo.survivalCount; p.info.sessionStreak = localPlayerInfo.sessionStreak; p.info.maxStreak = localPlayerInfo.maxStreak; }
-                broadcastRoomState();
-                sendToNetwork({ type: "SYNC_HISTORY", log: logItem });
-            } else {
-                sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: localPlayerInfo.sessionStreak, maxStreak: localPlayerInfo.maxStreak });
-            }
+                broadcastRoomState(); sendToNetwork({ type: "SYNC_HISTORY", log: logItem });
+            } else { sendToNetwork({ type: "UPDATE_STATS", survivalCount: localPlayerInfo.survivalCount, sessionStreak: localPlayerInfo.sessionStreak, maxStreak: localPlayerInfo.maxStreak }); }
         }
     }
 
     function connect() {
         socket = new WebSocket(wsUrl);
-        socket.onopen = () => {
-            elements.curState.textContent = "接続中"; elements.curState.style.color = "var(--success)";
-        };
+        socket.onopen = () => { elements.curState.textContent = "接続中"; elements.curState.style.color = "var(--success)"; };
         socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
                 switch(data.type || data.Type) {
-                    case "INSTANCE": 
-                        handleInstanceUpdate(data.Value || data.Id || "未接続"); 
-                        break;
+                    case "INSTANCE": handleInstanceUpdate(data.Value || data.Id || "未接続"); break;
                     case "ROUND_TYPE":
                         if (data.Command === 1) { 
                             currentRoundData.type = data.Name || "Classic"; currentRoundData.active = true; currentRoundData.isDead = false; activeTerrorSet.clear(); 
                             elements.curRoundType.textContent = currentRoundData.type; elements.curRoundType.className = "status-val searching"; elements.curTerror.textContent = "探索中..."; 
                             clearShopWarning(); parseGameEvents(null, currentRoundData.type); 
-                            
                             localPlayerInfo.isAlive = true;
                             if (isInRoom) {
                                 if (isHost) { let p = roomPlayers.find(p => p.peerId === peer.id); if(p) p.info.isAlive = true; broadcastRoomState(); } 
@@ -1763,27 +1593,19 @@
                             }
                         }
                         else if (data.Command === 0) { 
-                            if (data.Names && data.Names.length > 0) data.Names.forEach(name => { 
-                                handleTerrorDetection(name); 
-                            }); 
+                            if (data.Names && data.Names.length > 0) data.Names.forEach(name => { handleTerrorDetection(name); }); 
                             finalizeRound(); elements.curRoundType.textContent = "休憩時間"; elements.curRoundType.className = "status-val intermission"; elements.curTerror.textContent = "---"; 
                         }
-                        checkSpecialEffect();
-                        if(isHost) sendToNetwork({ type: "SYNC_ROUND", roundType: currentRoundData.type });
+                        checkSpecialEffect(); if(isHost) sendToNetwork({ type: "SYNC_ROUND", roundType: currentRoundData.type });
                         break;
                     case "TERRORS":
-                        if (data.Names && data.Names.length > 0) {
-                            data.Names.forEach(name => handleTerrorDetection(name));
-                        } else if (data.DisplayName && data.DisplayName.trim() !== "") { 
-                            handleTerrorDetection(data.DisplayName);
-                        }
+                        if (data.Names && data.Names.length > 0) { data.Names.forEach(name => handleTerrorDetection(name)); } 
+                        else if (data.DisplayName && data.DisplayName.trim() !== "") { handleTerrorDetection(data.DisplayName); }
                         updateActiveTerrorDisplay(); checkSpecialEffect();
                         break;
                     case "ALIVE": 
                         if (data.Value === false && currentRoundData.active) {
-                            currentRoundData.isDead = true;
-                            localPlayerInfo.isAlive = false;
-                            
+                            currentRoundData.isDead = true; localPlayerInfo.isAlive = false;
                             if (isInRoom) {
                                 if (isHost) { let p = roomPlayers.find(p => p.peerId === peer.id); if(p) p.info.isAlive = false; broadcastRoomState(); } 
                                 else { sendToNetwork({ type: "ALIVE_STATE", isAlive: false }); }
