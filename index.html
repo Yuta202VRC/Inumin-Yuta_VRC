@@ -861,7 +861,6 @@
         
         elements.numMaxHistory.value = maxHistorySave;
 
-        // Enterキーでそのまま演出を登録できるようにフック
         if(elements.txtEffectTerror) {
             elements.txtEffectTerror.addEventListener('keydown', (e) => {
                 if(e.key === 'Enter') { e.preventDefault(); addCustomEffect(); }
@@ -1317,24 +1316,24 @@
         currentSelectedMemoTerror = cleanedName; 
         if(elements.memoModalTitle) { elements.memoModalTitle.textContent = `【${cleanedName}】`; }
         
-        // --- Wikiリンク 例外マッピング ---
-        const toTitleCase = (str) => {
+        // --- Wikiリンク 確定版URLマッピング ---
+        const getWikiPageName = (str) => {
             let lower = str.toLowerCase().trim();
             const exactMap = {
-                "pov: bug": "POV Bug",
-                "pov : bug": "POV Bug",
-                "copyright infringement": "Copyright infringement",
                 "[lesser censored]": "LESSER CENSORED",
                 "lesser censored": "LESSER CENSORED",
                 "red vs blue": "Red vs Blue",
-                ".;.[;.;[..;[';'/.[]'];']/'=.];';[;-=].-=/;-=;][;-=/;'./=-;.": "face",
                 "pack of wild yet curious creatures": "Pack of Wild Yet Curious Creatures",
+                ".;.[;.;[..;[';'/.[]'];']/'=.];';[;-=].-=/;-=;][;-=/;'./=-;.": "face",
+                "pov: bug": "POV Bug",
+                "pov : bug": "POV Bug",
+                "copyright infringement": "Copyright infringement",
                 "her": "HER", "mx": "MX", "bff": "BFF", "censored": "CENSORED"
             };
             if (exactMap[lower]) return exactMap[lower];
 
             const keepLower = ["of", "the", "in", "and", "vs", "to", "a", "at", "for"];
-            return str.split(' ').map((word, idx) => {
+            return str.trim().split(' ').map((word, idx) => {
                 let wLower = word.toLowerCase();
                 if (idx > 0 && keepLower.includes(wLower)) return wLower;
                 return word.charAt(0).toUpperCase() + word.slice(1);
@@ -1342,7 +1341,7 @@
         };
         
         if(elements.btnWikiSearch) {
-            elements.btnWikiSearch.href = "https://wikiwiki.jp/ton_jp/" + encodeURIComponent(toTitleCase(cleanedName));
+            elements.btnWikiSearch.href = "https://wikiwiki.jp/ton_jp/" + encodeURIComponent(getWikiPageName(cleanedName));
         }
         
         if (terrorMemos[cleanedName]) {
@@ -1494,9 +1493,7 @@
         if (!currentRoundData.active) return;
         let array = Array.from(activeTerrorSet); let finalSet = new Set(array); let lowerToOriginal = {};
         array.forEach(item => lowerToOriginal[item.toLowerCase()] = item);
-        for (const [key, exclusions] of Object.entries(EXCLUSION_MAP)) {
-            if (lowerToOriginal[key.toLowerCase()]) exclusions.forEach(ex => { if (lowerToOriginal[ex.toLowerCase()]) finalSet.delete(lowerToOriginal[ex.toLowerCase()]); });
-        }
+        for (const [key, exclusions] of Object.entries(EXCLUSION_MAP)) { if (lowerToOriginal[key.toLowerCase()]) exclusions.forEach(ex => { if (lowerToOriginal[ex.toLowerCase()]) finalSet.delete(lowerToOriginal[ex.toLowerCase()]); }); }
         
         if (finalSet.size === 0) { elements.curTerror.textContent = "探索中..."; return; }
         elements.curTerror.innerHTML = "";
