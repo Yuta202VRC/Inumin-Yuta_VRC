@@ -88,12 +88,7 @@ const storage = {
             if (button) { const original = button.textContent; button.textContent = 'コピー完了！'; setTimeout(()=>button.textContent=original,1500); }
         } catch { prompt('自動コピーできませんでした。以下をコピーしてください。', text); }
     }
-    function saveConnectionSettings() {
-        const input = document.getElementById('connectionUrl'); const value = input.value.trim();
-        try { const url = new URL(value); if (!['ws:','wss:'].includes(url.protocol) || url.username || url.password) throw Error(); }
-        catch { alert('ws:// または wss:// から始まる接続先を入力してください。'); return; }
-        wsUrl = value; storage.setItem('ton_ws_url', wsUrl); connect();
-    }
     function syncSharedState() {
         if (isHost) sendToNetwork({type:'SYNC_FULL_STATE',altHistory,trackerState});
     }
+

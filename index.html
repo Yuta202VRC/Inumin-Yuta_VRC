@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToN Instance & Event Analyzer</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -382,7 +382,6 @@
             <button class="modal-close-trigger" onclick="toggleModal('managementModal', false)">×</button>
         </div>
         
-        <div class="master-panel"><label for="connectionUrl">ゲーム連携の接続先</label><div class="master-input-row"><input id="connectionUrl" class="input-text-dark" placeholder="ws://localhost:11398/"><button class="btn-action" onclick="saveConnectionSettings()">保存して再接続</button></div><small>ゲーム連携アプリを起動してから接続してください。</small></div>
         <p class="help-text">履歴の手動編集は履歴表示に反映されます。累計戦績は自動再計算されません。必要に応じて編集モードでカウンターを調整してください。</p>
         <div class="management-list">
             <label class="checksheet-item"><input type="checkbox" id="chkStreak" class="checksheet-checkbox"><span class="management-label"><strong>最高連勝記録 (★保護対象)</strong></span></label>
@@ -436,7 +435,7 @@
         </div>
 
         <div class="modal-footer" style="margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px; text-align: center; color: var(--text-muted); font-size: 0.8rem;">
-            <div style="margin-bottom: 5px;">© 2026 Inume Yuta. All rights reserved.</div>
+            <div style="margin-bottom: 5px;">© 2026 Inumine Yuta. All rights reserved.</div>
             <div style="font-weight: bold; margin-bottom: 5px;">犬峰ゆた</div>
             <div style="display: flex; justify-content: center; gap: 15px;">
                 <a href="https://x.com/Yuta_REC" target="_blank" rel="noopener noreferrer" style="color: var(--info); text-decoration: none;">X (Twitter)</a>
@@ -488,18 +487,20 @@
     </div>
 </div>
 
-<script src="assets/data/wiki-links.js"></script>
-<script src="assets/js/utils.js"></script>
-<script src="assets/js/state.js"></script>
-<script src="assets/js/wiki.js"></script>
-<script src="assets/js/storage.js"></script>
-<script src="assets/js/creator.js"></script>
-<script src="assets/js/multiplayer.js"></script>
-<script src="assets/js/backup.js"></script>
-<script src="assets/js/effects.js"></script>
-<script src="assets/js/editor.js"></script>
-<script src="assets/js/render.js"></script>
-<script src="assets/js/rounds.js"></script>
-<script src="assets/js/connection.js"></script>
+<script src="wiki-links.js"></script>
+<script src="utils.js"></script>
+<script src="state.js"></script>
+<script src="wiki.js"></script>
+<script src="storage.js"></script>
+<script src="creator.js"></script>
+<script src="multiplayer.js"></script>
+<script src="backup.js"></script>
+<script src="effects.js"></script>
+<script src="editor.js"></script>
+<script src="render.js"></script>
+<script src="rounds.js"></script>
+<script src="connection.js"></script>
 </body>
 </html>
+
+

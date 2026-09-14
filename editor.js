@@ -8,7 +8,6 @@ function toggleModal(modalId, open) {
         if(open) { if(modalId === 'managementModal') { elements.chkStreak.checked = false; elements.chkDb.checked = false; } modal.classList.add('open'); } 
         else { modal.classList.remove('open'); }
         if (open) {
-            if (modalId === 'managementModal') document.getElementById('connectionUrl').value = wsUrl;
             modal.querySelector('button, input, select, textarea')?.focus();
         } else if (modal._returnFocus?.isConnected) modal._returnFocus.focus();
     }
@@ -122,3 +121,4 @@ function executeSelectedDeletions() {
         if (elements.chkDb.checked) terrorDatabase = Object.create(null);
         saveLogs(); updateCountersDisplay(); renderTerrorDatabase(); renderTables(); toggleModal('managementModal', false);
     }
+
